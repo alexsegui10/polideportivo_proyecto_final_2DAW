@@ -1,0 +1,153 @@
+/* Estilos personalizados para FullCalendar */
+
+/* Variables de color - Paleta profesional */
+:root {
+  --fc-border-color: #cfd8dc;
+  --fc-button-bg-color: #1565c0;
+  --fc-button-border-color: #1565c0;
+  --fc-button-hover-bg-color: #0d47a1;
+  --fc-button-hover-border-color: #0d47a1;
+  --fc-button-active-bg-color: #0d47a1;
+  --fc-button-active-border-color: #0d47a1;
+  --fc-today-bg-color: rgba(21, 101, 192, 0.08);
+}
+
+/* Personalización del calendario */
+.fc {
+  font-family: 'Roboto', sans-serif;
+}
+
+.fc .fc-toolbar-title {
+  font-size: 1.5rem;
+  font-weight: 600;
+  color: #263238;
+}
+
+.fc .fc-button {
+  text-transform: capitalize;
+  font-weight: 500;
+  padding: 0.5rem 1rem;
+  border-radius: 4px;
+  box-shadow: none;
+  transition: all 0.2s ease;
+}
+
+.fc .fc-button:hover {
+  box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+}
+
+.fc .fc-button-primary:disabled {
+  opacity: 0.5;
+}
+
+.fc-theme-standard td,
+.fc-theme-standard th {
+  border-color: var(--fc-border-color);
+}
+
+.fc-theme-standard .fc-scrollgrid {
+  border-color: var(--fc-border-color);
+}
+
+/* Estilos de eventos */
+.fc-event {
+  border-radius: 4px;
+  padding: 2px 4px;
+  font-size: 0.875rem;
+  cursor: pointer;
+  transition: transform 0.2s ease, box-shadow 0.2s ease;
+}
+
+.fc-event:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 4px 8px rgba(0,0,0,0.2);
+}
+
+.fc-daygrid-event {
+  margin: 1px 2px;
+}
+
+/* Indicador de hora actual */
+.fc-timegrid-now-indicator-line {
+  border-color: #e53935;
+  border-width: 2px;
+}
+
+.fc-timegrid-now-indicator-arrow {
+  border-color: #e53935;
+}
+
+/* Slots de tiempo */
+.fc-timegrid-slot {
+  height: 3em;
+}
+
+.fc-timegrid-slot-label {
+  font-weight: 500;
+  color: #546e7a;
+}
+
+/* Fin de semana */
+.fc-day-sat,
+.fc-day-sun {
+  background-color: rgba(0, 0, 0, 0.02);
+}
+
+/* Día de hoy */
+.fc-day-today {
+  background-color: var(--fc-today-bg-color) !important;
+}
+
+/* Horario de negocio */
+.fc-non-business {
+  background-color: rgba(0, 0, 0, 0.03);
+}
+
+/* Mejoras de accesibilidad */
+.fc-event-time,
+.fc-event-title {
+  font-weight: 500;
+}
+
+/* Responsividad */
+@media (max-width: 768px) {
+  .fc .fc-toolbar {
+    flex-direction: column;
+    gap: 1rem;
+  }
+  
+  .fc .fc-toolbar-title {
+    font-size: 1.25rem;
+  }
+  
+  .fc-event {
+    font-size: 0.75rem;
+  }
+}
+
+/* Popup de más eventos */
+.fc-popover {
+  border-radius: 8px;
+  box-shadow: 0 4px 12px rgba(0,0,0,0.15);
+  border: 1px solid var(--fc-border-color);
+}
+
+.fc-popover-header {
+  background-color: #f5f5f5;
+  padding: 0.5rem 1rem;
+  border-radius: 8px 8px 0 0;
+}
+
+.fc-popover-body {
+  padding: 0.5rem;
+}
+
+/* Vista mensual - eventos */
+.fc-daygrid-event-harness {
+  margin-bottom: 2px;
+}
+
+/* Selección de rango */
+.fc-highlight {
+  background-color: rgba(21, 101, 192, 0.12);
+}

@@ -1,0 +1,20 @@
+-- V4: Agregar constraints para deportes válidos
+-- Asegurar consistencia en los deportes permitidos
+
+-- Crear tipo ENUM para deportes (PostgreSQL no permite modificar ENUMs fácilmente, así que usamos CHECK constraints)
+-- Los deportes válidos son: Pádel, Tenis, Fútbol Sala, Baloncesto, Spinning, Yoga, Natación, Crossfit
+
+-- Actualizar tabla pistas con constraint de deportes
+ALTER TABLE pistas DROP CONSTRAINT IF EXISTS pistas_tipo_check;
+ALTER TABLE pistas ADD CONSTRAINT pistas_tipo_check 
+    CHECK (tipo IN ('Pádel', 'Tenis', 'Fútbol Sala', 'Baloncesto', 'Spinning', 'Yoga', 'Natación', 'Crossfit'));
+
+-- Actualizar tabla clubs con constraint de deportes
+ALTER TABLE clubs DROP CONSTRAINT IF EXISTS clubs_deporte_check;
+ALTER TABLE clubs ADD CONSTRAINT clubs_deporte_check 
+    CHECK (deporte IN ('Pádel', 'Tenis', 'Fútbol Sala', 'Baloncesto', 'Spinning', 'Yoga', 'Natación', 'Crossfit'));
+
+-- Actualizar tabla clases_publicas con constraint de deportes
+ALTER TABLE clases_publicas DROP CONSTRAINT IF EXISTS clases_publicas_deporte_check;
+ALTER TABLE clases_publicas ADD CONSTRAINT clases_publicas_deporte_check 
+    CHECK (deporte IN ('Pádel', 'Tenis', 'Fútbol Sala', 'Baloncesto', 'Spinning', 'Yoga', 'Natación', 'Crossfit'));

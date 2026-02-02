@@ -1,0 +1,119 @@
+services:
+  # PostgreSQL Database
+  postgres:
+    image: postgres:15-alpine
+    container_name: emotivapoli_postgres
+    environment:
+      POSTGRES_DB: emotivapoli
+      POSTGRES_USER: admin
+      POSTGRES_PASSWORD: admin123
+      PGDATA: /var/lib/postgresql/data/pgdata
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+      - ./init-db.sql:/docker-entrypoint-initdb.d/init-db.sql
+    ports:
+      - "5432:5432"
+    networks:
+      - emotivapoli_network
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U admin -d emotivapoli"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+    restart: unless-stopped
+
+  # pgAdmin - PostgreSQL Management Tool
+  pgadmin:
+    image: dpage/pgadmin4:latest
+    container_name: emotivapoli_pgadmin
+    environment:
+      PGADMIN_DEFAULT_EMAIL: admin@emotivapoli.com
+      PGADMIN_DEFAULT_PASSWORD: admin123
+      PGADMIN_CONFIG_SERVER_MODE: 'False'
+      PGADMIN_CONFIG_MASTER_PASSWORD_REQUIRED: 'False'
+    volumes:
+      - pgadmin_data:/var/lib/pgadmin
+      - ./pgadmin-servers.json:/pgadmin4/servers.json
+    ports:
+      - "5050:80"
+    depends_on:
+      postgres:
+        condition: service_healthy
+    networks:
+      - emotivapoli_network
+    restart: unless-stopped
+
+  # FastAPI Server (Python)
+  fastapi_server:
+    build:
+      context: ./fastapi_server
+      dockerfile: Dockerfile
+    container_name: emotivapoli_fastapi
+    environment:
+      DATABASE_URL: postgresql+psycopg://admin:admin123@postgres:5432/emotivapoli
+      SECRET_KEY: your-secret-key-change-in-production
+      ALGORITHM: HS256
+      ACCESS_TOKEN_EXPIRE_MINUTES: 30
+    ports:
+      - "8000:5000"
+    depends_on:
+      postgres:
+        condition: service_healthy
+      springboot_server:
+        condition: service_started
+    networks:
+      - emotivapoli_network
+    volumes:
+      - ./fastapi_server:/app
+    restart: unless-stopped
+
+  # Spring Boot Server (Java)
+  springboot_server:
+    build:
+      context: ./springboot_server
+      dockerfile: Dockerfile
+    container_name: emotivapoli_springboot
+    environment:
+      SPRING_DATASOURCE_URL: jdbc:postgresql://postgres:5432/emotivapoli
+      SPRING_DATASOURCE_USERNAME: admin
+      SPRING_DATASOURCE_PASSWORD: admin123
+      SPRING_JPA_HIBERNATE_DDL_AUTO: update
+      SPRING_JPA_SHOW_SQL: "true"
+      SERVER_PORT: 8080
+    ports:
+      - "8080:8080"
+    depends_on:
+      postgres:
+        condition: service_healthy
+    networks:
+      - emotivapoli_network
+    restart: unless-stopped
+
+  # React Client (Frontend)
+  react_client:
+    build:
+      context: ./react_client
+      dockerfile: Dockerfile
+    container_name: emotivapoli_react
+    environment:
+      - VITE_API_URL=http://localhost:8080
+    ports:
+      - "3002:3002"
+    depends_on:
+      springboot_server:
+        condition: service_started
+      fastapi_server:
+        condition: service_started
+    networks:
+      - emotivapoli_network
+    restart: unless-stopped
+
+networks:
+  emotivapoli_network:
+    driver: bridge
+
+volumes:
+  postgres_data:
+    driver: local
+  pgadmin_data:
+    driver: local
