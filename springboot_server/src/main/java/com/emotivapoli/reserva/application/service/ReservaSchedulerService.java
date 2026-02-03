@@ -26,36 +26,22 @@ public class ReservaSchedulerService {
     private EntityManager entityManager;
 
     /**
-     * Ejecuta cada 15 minutos para actualizar estados de reservas.
-     * Cron: cada 15 minutos (0, 15, 30, 45)
-     * Puedes cambiar a "0 0 * * * *" para ejecutar cada hora
+     * Ejecuta cada 5 minutos para actualizar estados de reservas y clases.
      */
-    @Scheduled(cron = "0 0/15 * * * *")
+    @Scheduled(cron = "0 0/5 * * * *")
     @Transactional
     public void actualizarEstadosReservas() {
         try {
-            logger.info("Ejecutando actualización automática de estados de reservas...");
+            logger.info("Ejecutando actualización automática de estados...");
             
-            // Llamar a la función PostgreSQL
-            List<?> resultado = entityManager
-                .createNativeQuery("SELECT * FROM actualizar_estados_reservas()")
-                .getResultList();
+            // Llamar a las funciones PostgreSQL (void functions)
+            entityManager.createNativeQuery("SELECT actualizar_estado_reservas()").executeUpdate();
+            entityManager.createNativeQuery("SELECT actualizar_estado_clases()").executeUpdate();
             
-            if (!resultado.isEmpty()) {
-                Object[] counts = (Object[]) resultado.get(0);
-                Integer completadas = ((BigInteger) counts[0]).intValue();
-                Integer canceladas = ((BigInteger) counts[1]).intValue();
-                
-                if (completadas > 0 || canceladas > 0) {
-                    logger.info("Actualización completada: {} reservas marcadas como completadas, {} como canceladas", 
-                        completadas, canceladas);
-                } else {
-                    logger.debug("No hay reservas para actualizar en este momento");
-                }
-            }
+            logger.info("Estados actualizados correctamente");
             
         } catch (Exception e) {
-            logger.error("Error al actualizar estados de reservas automáticamente: {}", e.getMessage(), e);
+            logger.error("Error al actualizar estados automáticamente: {}", e.getMessage(), e);
         }
     }
 

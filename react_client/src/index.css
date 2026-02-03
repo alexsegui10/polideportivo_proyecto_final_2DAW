@@ -16,3 +16,16 @@ code {
   font-family: source-code-pro, Menlo, Monaco, Consolas, 'Courier New',
     monospace;
 }
+
+/* SweetAlert2 z-index fix para aparecer sobre modales MUI */
+.swal2-container {
+  z-index: 30000 !important;
+}
+
+.swal2-popup {
+  z-index: 30001 !important;
+}
+
+.swal2-backdrop-show {
+  z-index: 29999 !important;
+}

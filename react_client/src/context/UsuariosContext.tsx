@@ -36,9 +36,10 @@ export const UsuariosProvider = ({ children }: UsuariosProviderProps) => {
       const data = await getUsuarios();
       console.log('Usuarios obtenidos:', data);
       setUsuarios(data);
-    } catch (err) {
+    } catch (err: any) {
       console.error('Error al cargar usuarios:', err);
-      setError(err instanceof Error ? err.message : 'Error al cargar usuarios');
+      const errorMessage = err?.response?.data?.message || err.message || 'Error al cargar usuarios';
+      setError(errorMessage);
     } finally {
       setLoading(false);
     }
@@ -53,8 +54,8 @@ export const UsuariosProvider = ({ children }: UsuariosProviderProps) => {
       const nuevoUsuario = await createUsuarioService(usuario);
       setUsuarios(prev => [...prev, nuevoUsuario]);
       return nuevoUsuario;
-    } catch (err) {
-      setError(err instanceof Error ? err.message : 'Error al crear usuario');
+    } catch (err: any) {
+      // No establecer error global, solo lanzar para que el componente lo maneje
       throw err;
     }
   };
@@ -64,8 +65,8 @@ export const UsuariosProvider = ({ children }: UsuariosProviderProps) => {
       const usuarioActualizado = await updateUsuarioService(slug, usuario);
       setUsuarios(prev => prev.map(u => u.slug === slug ? usuarioActualizado : u));
       return usuarioActualizado;
-    } catch (err) {
-      setError(err instanceof Error ? err.message : 'Error al actualizar usuario');
+    } catch (err: any) {
+      // No establecer error global, solo lanzar para que el componente lo maneje
       throw err;
     }
   };
@@ -75,8 +76,8 @@ export const UsuariosProvider = ({ children }: UsuariosProviderProps) => {
       await deleteUsuarioService(slug);
       // Recargar para obtener el usuario con status='eliminado'
       await fetchUsuarios();
-    } catch (err) {
-      setError(err instanceof Error ? err.message : 'Error al eliminar usuario');
+    } catch (err: any) {
+      // No establecer error global, solo lanzar para que el componente lo maneje
       throw err;
     }
   };

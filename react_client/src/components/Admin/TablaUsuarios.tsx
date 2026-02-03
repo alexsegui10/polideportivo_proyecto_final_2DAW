@@ -20,7 +20,7 @@ import {
 import { Edit, Delete } from '@mui/icons-material';
 import { Usuario, UsuarioCreateRequest, UsuarioUpdateRequest } from '../../types';
 import { FormField, FormSelect } from '../Shared';
-import Swal from 'sweetalert2';
+import { showAlert, successAlert, errorAlert } from '../../utils/sweetAlert';
 
 interface TablaUsuariosProps {
   usuarios: Usuario[];
@@ -31,7 +31,7 @@ interface TablaUsuariosProps {
 
 export const TablaUsuarios = ({ usuarios, onCreate, onUpdate, onDelete }: TablaUsuariosProps) => {
   const [modalAbierto, setModalAbierto] = useState(false);
-  const [usuarioEditando, setUsuarioEditando] = useState<Usuario | null>(null);
+  const [usuarioEditando, setUsuarioEditando] = useState<string | null>(null); // Guardamos solo el slug
 
   // Formulario
   const [formData, setFormData] = useState<UsuarioCreateRequest>({
@@ -85,23 +85,23 @@ export const TablaUsuarios = ({ usuarios, onCreate, onUpdate, onDelete }: TablaU
   const handleGuardar = async () => {
     // Validaciones
     if (!formData.nombre.trim()) {
-      Swal.fire('Error', 'El nombre es obligatorio', 'error');
+      await errorAlert('Error', 'El nombre es obligatorio');
       return;
     }
     if (!formData.email.trim()) {
-      Swal.fire('Error', 'El email es obligatorio', 'error');
+      await errorAlert('Error', 'El email es obligatorio');
       return;
     }
     if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(formData.email)) {
-      Swal.fire('Error', 'El email no es válido', 'error');
+      await errorAlert('Error', 'El email no es válido');
       return;
     }
     if (!usuarioEditando && !formData.passwordHash.trim()) {
-      Swal.fire('Error', 'La contraseña es obligatoria', 'error');
+      await errorAlert('Error', 'La contraseña es obligatoria');
       return;
     }
     if (!formData.role) {
-      Swal.fire('Error', 'El rol es obligatorio', 'error');
+      await errorAlert('Error', 'El rol es obligatorio');
       return;
     }
 
@@ -117,20 +117,21 @@ export const TablaUsuarios = ({ usuarios, onCreate, onUpdate, onDelete }: TablaU
           status: formData.status,
           isActive: formData.isActive
         };
-        await onUpdate(usuarioEditando.slug, updateData);
+        await onUpdate(usuarioEditando as string, updateData); 
       } else {
         await onCreate(formData);
       }
       handleCerrarModal();
-      await Swal.fire('¡Guardado!', 'Usuario guardado correctamente', 'success');
-    } catch (error) {
+      await successAlert('¡Guardado!', 'Usuario guardado correctamente');
+    } catch (error: any) {
       console.error('Error al guardar usuario:', error);
-      Swal.fire('Error', 'Error al guardar usuario. Revisa que todos los campos estén correctos.', 'error');
+      const errorMessage = error?.response?.data?.message || error.message || 'Error al guardar usuario. Revisa que todos los campos estén correctos.';
+      await errorAlert('Error', errorMessage);
     }
   };
 
   const handleEliminar = async (slug: string) => {
-    const result = await Swal.fire({
+    const result = await showAlert({
       title: '¿Eliminar usuario?',
       text: 'Esta acción no se puede deshacer',
       icon: 'warning',

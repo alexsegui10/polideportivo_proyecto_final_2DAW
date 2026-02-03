@@ -5,6 +5,9 @@ import com.emotivapoli.usuario.domain.entity.Usuario;
 import com.emotivapoli.usuario.infrastructure.mapper.UsuarioMapper;
 import com.emotivapoli.usuario.infrastructure.repository.UsuarioRepository;
 import com.emotivapoli.utils.SlugUtils;
+import com.emotivapoli.exception.DuplicateResourceException;
+import com.emotivapoli.exception.ResourceNotFoundException;
+import com.emotivapoli.exception.ValidationException;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
@@ -33,7 +36,7 @@ public class UsuarioService {
     // Por ID
     public UsuarioDTO getUsuarioById(Long id) {
         Usuario usuario = usuarioRepository.findById(id)
-                .orElseThrow(() -> new RuntimeException("Usuario no encontrado con ID: " + id));
+                .orElseThrow(() -> new ResourceNotFoundException("Usuario no encontrado con ID: " + id));
         return usuarioMapper.toDTO(usuario);
     }
 
@@ -42,7 +45,7 @@ public class UsuarioService {
      */
     public UsuarioDTO getUsuarioBySlug(String slug) {
         Usuario usuario = usuarioRepository.findBySlug(slug)
-                .orElseThrow(() -> new RuntimeException("Usuario no encontrado con slug: " + slug));
+                .orElseThrow(() -> new ResourceNotFoundException("Usuario no encontrado con slug: " + slug));
         return usuarioMapper.toDTO(usuario);
     }
 
@@ -51,7 +54,7 @@ public class UsuarioService {
      */
     public UsuarioDTO getUsuarioByEmail(String email) {
         Usuario usuario = usuarioRepository.findByEmail(email)
-                .orElseThrow(() -> new RuntimeException("Usuario no encontrado con email: " + email));
+                .orElseThrow(() -> new ResourceNotFoundException("Usuario no encontrado con email: " + email));
         return usuarioMapper.toDTO(usuario);
     }
 
@@ -65,20 +68,29 @@ public class UsuarioService {
 
     // Crear
     public UsuarioDTO createUsuario(UsuarioDTO usuarioDTO, String passwordHash) {
-        String slug = SlugUtils.generateSlug(usuarioDTO.getNombre(), usuarioDTO.getApellidos());
+        // Validar campos obligatorios
+        if (usuarioDTO.getNombre() == null || usuarioDTO.getNombre().trim().isEmpty()) {
+            throw new ValidationException("El nombre es obligatorio");
+        }
+        if (usuarioDTO.getEmail() == null || usuarioDTO.getEmail().trim().isEmpty()) {
+            throw new ValidationException("El email es obligatorio");
+        }
+        if (passwordHash == null || passwordHash.trim().isEmpty()) {
+            throw new ValidationException("La contraseña es obligatoria");
+        }
+        if (usuarioDTO.getRole() == null || usuarioDTO.getRole().trim().isEmpty()) {
+            throw new ValidationException("El rol es obligatorio");
+        }
+
+        // Generar slug con 4 números aleatorios
+        String apellidos = usuarioDTO.getApellidos() != null ? usuarioDTO.getApellidos() : "";
+        String slug = SlugUtils.generateSlug(usuarioDTO.getNombre(), apellidos);
         
         // Verificar que el email no existe EN USUARIOS NO ELIMINADOS
         usuarioRepository.findByEmail(usuarioDTO.getEmail())
                 .filter(u -> !"eliminado".equals(u.getStatus()))
                 .ifPresent(u -> {
-                    throw new RuntimeException("Ya existe un usuario con ese email");
-                });
-
-        // Verificar que el slug generado no existe EN USUARIOS NO ELIMINADOS
-        usuarioRepository.findBySlug(slug)
-                .filter(u -> !"eliminado".equals(u.getStatus()))
-                .ifPresent(u -> {
-                    throw new RuntimeException("Ya existe un usuario con ese nombre");
+                    throw new DuplicateResourceException("Ya existe un usuario con el email: " + usuarioDTO.getEmail());
                 });
 
         Usuario usuario = usuarioMapper.toEntity(usuarioDTO);
@@ -96,12 +108,12 @@ public class UsuarioService {
     // Actualizar
     public UsuarioDTO updateUsuario(Long id, UsuarioDTO usuarioDTO) {
         Usuario usuarioExistente = usuarioRepository.findById(id)
-                .orElseThrow(() -> new RuntimeException("Usuario no encontrado con ID: " + id));
+                .orElseThrow(() -> new ResourceNotFoundException("Usuario no encontrado con ID: " + id));
 
         // Verificar email único si se está cambiando
         if (usuarioDTO.getEmail() != null && !usuarioDTO.getEmail().equals(usuarioExistente.getEmail())) {
             if (usuarioRepository.existsByEmail(usuarioDTO.getEmail())) {
-                throw new RuntimeException("Ya existe un usuario con ese email");
+                throw new DuplicateResourceException("Ya existe un usuario con el email: " + usuarioDTO.getEmail());
             }
             usuarioExistente.setEmail(usuarioDTO.getEmail());
         }
@@ -109,7 +121,7 @@ public class UsuarioService {
         // Verificar DNI único si se está cambiando
         if (usuarioDTO.getDni() != null && !usuarioDTO.getDni().equals(usuarioExistente.getDni())) {
             if (usuarioRepository.existsByDni(usuarioDTO.getDni())) {
-                throw new RuntimeException("Ya existe un usuario con ese DNI");
+                throw new DuplicateResourceException("Ya existe un usuario con el DNI: " + usuarioDTO.getDni());
             }
             usuarioExistente.setDni(usuarioDTO.getDni());
         }
@@ -141,7 +153,7 @@ public class UsuarioService {
      */
     public void deleteUsuario(Long id) {
         Usuario usuario = usuarioRepository.findById(id)
-                .orElseThrow(() -> new RuntimeException("Usuario no encontrado con ID: " + id));
+                .orElseThrow(() -> new ResourceNotFoundException("Usuario no encontrado con ID: " + id));
 
         usuario.setStatus("eliminado");
         usuario.setIsActive(false);

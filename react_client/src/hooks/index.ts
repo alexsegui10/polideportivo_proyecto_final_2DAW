@@ -1,5 +1,8 @@
 // Custom hooks
 
+// Auto-update status
+export { useAutoUpdateStatus } from './useAutoUpdateStatus'
+
 // Pistas
 export { usePistas } from './queries/usePistas'
 export { usePistasMutations } from './mutations/usePistasMutations'

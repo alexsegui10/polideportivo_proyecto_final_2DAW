@@ -60,7 +60,7 @@ public class ClasePublica {
     private String deporte;
 
     @Column(nullable = false, length = 50)
-    private String status = "programada"; // programada, en_curso, finalizada, cancelada, eliminado
+    private String status = "pendiente"; // pendiente, confirmado, en_curso, completado, cancelado
 
     @Column(name = "is_active", nullable = false)
     private Boolean isActive = true;

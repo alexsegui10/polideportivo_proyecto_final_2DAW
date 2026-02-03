@@ -101,6 +101,11 @@ public class ClasePublicaService {
             clase.setPista(pista);
         }
 
+        // VALIDAR QUE NO SEA FECHA PASADA
+        if (claseDTO.getFechaHoraInicio().isBefore(LocalDateTime.now())) {
+            throw new RuntimeException("No se pueden crear clases en fechas pasadas");
+        }
+
         // VALIDAR CONFLICTOS DE HORARIO
         validarConflictos(claseDTO.getFechaHoraInicio(), claseDTO.getFechaHoraFin(),
                 claseDTO.getPistaId(), null);

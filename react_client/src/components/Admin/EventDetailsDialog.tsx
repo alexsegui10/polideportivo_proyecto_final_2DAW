@@ -25,6 +25,8 @@ import {
     Event as EventIcon
 } from '@mui/icons-material';
 import { ClasePublica, Reserva } from '../../types';
+import { usePistas } from '../../hooks';
+import { useUsuarios } from '../../hooks';
 
 interface EventDetailsDialogProps {
     open: boolean;
@@ -33,6 +35,7 @@ interface EventDetailsDialogProps {
     type: 'clase' | 'reserva' | null;
     onEdit: (event: any) => void;
     onDelete: (event: any) => void;
+    onManageMembers?: (clase: ClasePublica) => void;
 }
 
 export const EventDetailsDialog = ({
@@ -41,15 +44,27 @@ export const EventDetailsDialog = ({
     event,
     type,
     onEdit,
-    onDelete
+    onDelete,
+    onManageMembers
 }: EventDetailsDialogProps) => {
+    const { pistas } = usePistas();
+    const { usuarios } = useUsuarios();
+    
     if (!event) return null;
 
     const isClase = type === 'clase';
     const data = event as any; // Helper para acceder a propiedades comunes
 
+    // Obtener nombre de pista
+    const pista = pistas.find(p => p.id === data.pistaId);
+    const pistaNombre = pista ? pista.nombre : `Pista #${data.pistaId}`;
+
+    //obetner nombre entrenador
+    const usuario = usuarios.find(u => u.id === (isClase ? data.entrenadorId : data.usuarioId));
+    const usuarioNombre = usuario ? `${usuario.nombre} ${usuario.apellidos || ''}` : `Usuario #${isClase ? data.entrenadorId : data.usuarioId}`;
+
     // Colores y Tema según tipo
-    const themeColor = isClase ? '#3949ab' : '#00695c'; // Indigo 600 vs Teal 800
+    const themeColor = isClase ? '#3949ab' : '#00695c'; 
     const themeLight = isClase ? '#e8eaf6' : '#e0f2f1';
 
     // Título y Subtítulo
@@ -59,12 +74,15 @@ export const EventDetailsDialog = ({
     // Estado Color
     const getStatusColor = (status: string) => {
         switch (status) {
-            case 'confirmada': return 'success';
-            case 'programada': return 'primary';
+            case 'confirmada':
+            case 'confirmado': return 'success';
             case 'pendiente': return 'warning';
-            case 'cancelada': return 'error';
-            case 'finalizada':
-            case 'completada': return 'info';
+            case 'en_curso': return 'secondary';
+            case 'cancelada':
+            case 'cancelado': return 'error';
+            case 'completada':
+            case 'completado': return 'info';
+            case 'no_show': return 'error';
             default: return 'default';
         }
     };
@@ -163,7 +181,7 @@ export const EventDetailsDialog = ({
                             <Box>
                                 <Typography variant="caption" color="text.secondary">Pista</Typography>
                                 <Typography variant="body2" fontWeight="medium">
-                                    Pista #{data.pistaId}
+                                    {pistaNombre}
                                 </Typography>
                             </Box>
                         </Box>
@@ -202,7 +220,7 @@ export const EventDetailsDialog = ({
                                 </Typography>
                                 <Typography variant="body2" fontWeight="medium">
                                     {isClase
-                                        ? `Entrenador #${data.entrenadorId}`
+                                        ? ` ${usuarioNombre} `
                                         : (data.usuarioNombre ? `${data.usuarioNombre} ${data.usuarioApellidos || ''}` : `Usuario #${data.usuarioId}`)}
                                 </Typography>
                             </Box>
@@ -277,6 +295,16 @@ export const EventDetailsDialog = ({
                     Eliminar
                 </Button>
                 <Box>
+                    {isClase && onManageMembers && (
+                        <Button
+                            startIcon={<GroupIcon />}
+                            color="primary"
+                            onClick={() => onManageMembers(event as ClasePublica)}
+                            sx={{ mr: 1 }}
+                        >
+                            Gestionar Miembros
+                        </Button>
+                    )}
                     <Button onClick={onClose} sx={{ mr: 1, color: 'text.secondary' }}>
                         Cerrar
                     </Button>

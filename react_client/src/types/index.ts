@@ -253,7 +253,83 @@ export interface ReservaCreateRequest {
   notas?: string;
   tipoReserva?: string;
 }
+// Types para Inscripciones de Clases
+export interface ClaseInscripcion {
+  id: number;
+  uid: string;
+  claseId: number;
+  claseNombre?: string;
+  claseFechaHoraInicio?: string;
+  usuarioId: number;
+  usuarioNombre?: string;
+  usuarioEmail?: string;
+  status: string; // confirmada, cancelada, asistio, ausente, eliminado
+  isActive: boolean;
+  precioPagado: number;
+  metodoPago?: string;
+  fechaInscripcion: string;
+  cancelledAt?: string;
+  cancelReason?: string;
+  refundStatus?: string;
+  refundAmount?: number;
+  createdAt: string;
+  updatedAt: string;
+}
 
+export interface ClaseWaitlist {
+  id: number;
+  uid: string;
+  claseId: number;
+  claseNombre?: string;
+  claseFechaHoraInicio?: string;
+  usuarioId: number;
+  usuarioNombre?: string;
+  usuarioEmail?: string;
+  posicion: number;
+  status: string; // esperando, convertido, expirado, cancelado
+  isActive: boolean;
+  fechaRegistro: string;
+  fechaNotificacion?: string;
+  fechaExpiracion?: string;
+  createdAt: string;
+  updatedAt: string;
+}
+
+// Types para Miembros de Clubs
+export interface ClubMiembro {
+  id: number;
+  uid: string;
+  clubId: number;
+  clubNombre?: string;
+  usuarioId: number;
+  usuarioNombre?: string;
+  usuarioEmail?: string;
+  status: string; // activo, inactivo, expulsado
+  isActive: boolean;
+  tieneSuscripcionActiva?: boolean;
+  fechaInscripcion: string;
+  fechaBaja?: string;
+  createdAt: string;
+  updatedAt: string;
+}
+
+export interface ClubSuscripcion {
+  id: number;
+  uid: string;
+  clubMiembroUid: string;
+  clubNombre?: string;
+  usuarioNombre?: string;
+  usuarioEmail?: string;
+  fechaInicio: string;
+  fechaFin?: string;
+  precioMensual: number;
+  status: string; // activa, pausada, cancelada, vencida, impago
+  isActive: boolean;
+  proximoCobro: string;
+  intentosCobro: number;
+  createdAt: string;
+  updatedAt: string;
+}
 export interface ReservaUpdateRequest {
   pistaId?: number;
   clubId?: number;

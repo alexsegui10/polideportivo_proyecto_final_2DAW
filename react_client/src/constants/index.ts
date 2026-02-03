@@ -27,18 +27,21 @@ export type Nivel = typeof NIVELES[number];
 export const ESTADOS_RESERVA = [
   'pendiente',
   'confirmada',
+  'en_curso',
+  'completada',
   'cancelada',
-  'completada'
+  'no_show'
 ] as const;
 
 export type EstadoReserva = typeof ESTADOS_RESERVA[number];
 
 // Estados de clase
 export const ESTADOS_CLASE = [
-  'programada',
+  'pendiente',
+  'confirmado',
   'en_curso',
-  'finalizada',
-  'cancelada'
+  'completado',
+  'cancelado'
 ] as const;
 
 export type EstadoClase = typeof ESTADOS_CLASE[number];

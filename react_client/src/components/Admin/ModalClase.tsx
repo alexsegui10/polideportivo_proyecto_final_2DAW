@@ -11,7 +11,7 @@ import { FormField, FormSelect, DateTimeWithDuration } from '../Shared';
 import { ClasePublica, ClaseCreateRequest, ClaseUpdateRequest, Pista, Usuario, Reserva } from '../../types';
 import { DEPORTES } from '../../constants/deportes';
 import { formatLocalDateTime } from '../../utils/formatLocalDateTime';
-import Swal from 'sweetalert2';
+import { showAlert } from '../../utils/sweetAlert';
 
 interface ModalClaseProps {
     open: boolean;
@@ -80,7 +80,7 @@ export const ModalClase = ({
         precio: 0, // Siempre 0, las clases son gratis
         nivel: 'principiante',
         deporte: DEPORTES[0]?.value || 'Pádel', // Prellenar con primer deporte
-        status: 'programada',
+        status: 'pendiente',
         isActive: true
     });
 
@@ -192,7 +192,7 @@ export const ModalClase = ({
         });
 
         if (hayConflictoReserva) {
-            await Swal.fire({
+            await showAlert({
                 title: '⚠️ Conflicto de Horario',
                 html: `
           <div style="text-align: left;">
@@ -227,7 +227,7 @@ export const ModalClase = ({
         });
 
         if (hayConflictoClase) {
-            await Swal.fire({
+            await showAlert({
                 title: '⚠️ Conflicto de Horario',
                 html: `
           <div style="text-align: left;">
@@ -279,7 +279,7 @@ export const ModalClase = ({
             precio: 0,
             nivel: 'principiante',
             deporte: DEPORTES[0]?.value || 'Pádel',
-            status: 'programada',
+            status: 'pendiente',
             isActive: true
         });
         setFecha('');
@@ -376,13 +376,14 @@ export const ModalClase = ({
 
                     <FormSelect
                         label="Estado"
-                        value={formData.status || 'programada'}
+                        value={formData.status || 'pendiente'}
                         onChange={(v) => setFormData({ ...formData, status: v as string })}
                         options={[
-                            { value: 'programada', label: 'Programada' },
+                            { value: 'pendiente', label: 'Pendiente' },
+                            { value: 'confirmado', label: 'Confirmado' },
                             { value: 'en_curso', label: 'En Curso' },
-                            { value: 'finalizada', label: 'Finalizada' },
-                            { value: 'cancelada', label: 'Cancelada' }
+                            { value: 'completado', label: 'Completado' },
+                            { value: 'cancelado', label: 'Cancelado' }
                         ]}
                         required
                     />

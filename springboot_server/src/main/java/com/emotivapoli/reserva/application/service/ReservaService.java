@@ -111,6 +111,11 @@ public class ReservaService {
             reserva.setClub(club);
         }
 
+        // VALIDAR QUE NO SEA FECHA PASADA
+        if (reservaDTO.getFechaHoraInicio().isBefore(LocalDateTime.now())) {
+            throw new RuntimeException("No se pueden crear reservas en fechas pasadas");
+        }
+
         // VALIDAR CONFLICTOS DE HORARIO
         validarConflictos(reservaDTO.getFechaHoraInicio(), reservaDTO.getFechaHoraFin(),
                 reservaDTO.getPistaId(), null);

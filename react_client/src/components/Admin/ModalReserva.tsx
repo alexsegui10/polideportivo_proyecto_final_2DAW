@@ -10,7 +10,7 @@ import {
 import { FormField, FormSelect, DateTimeWithDuration, UserSelector } from '../Shared';
 import { Reserva, ReservaCreateRequest, ReservaUpdateRequest, Pista, Usuario, ClasePublica } from '../../types';
 import { formatLocalDateTime } from '../../utils/formatLocalDateTime';
-import Swal from 'sweetalert2';
+import { showAlert } from '../../utils/sweetAlert';
 
 interface ModalReservaProps {
     open: boolean;
@@ -202,7 +202,7 @@ export const ModalReserva = ({
         });
 
         if (hayConflictoClase) {
-            await Swal.fire({
+            await showAlert({
                 title: '⚠️ Conflicto de Horario',
                 html: `
           <div style="text-align: left;">
@@ -237,7 +237,7 @@ export const ModalReserva = ({
         });
 
         if (hayConflictoReserva) {
-            await Swal.fire({
+            await showAlert({
                 title: '⚠️ Conflicto de Horario',
                 html: `
           <div style="text-align: left;">
@@ -368,8 +368,10 @@ export const ModalReserva = ({
                                 options={[
                                     { value: 'pendiente', label: 'Pendiente' },
                                     { value: 'confirmada', label: 'Confirmada' },
+                                    { value: 'en_curso', label: 'En Curso' },
+                                    { value: 'completada', label: 'Completada' },
                                     { value: 'cancelada', label: 'Cancelada' },
-                                    { value: 'completada', label: 'Completada' }
+                                    { value: 'no_show', label: 'No Show' }
                                 ]}
                                 required
                             />

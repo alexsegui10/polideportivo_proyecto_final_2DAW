@@ -3,7 +3,7 @@ import FullCalendar from '@fullcalendar/react';
 import resourceTimeGridPlugin from '@fullcalendar/resource-timegrid';
 import interactionPlugin from '@fullcalendar/interaction';
 import esLocale from '@fullcalendar/core/locales/es';
-import Swal from 'sweetalert2';
+import { showAlert, successAlert, errorAlert } from '../../utils/sweetAlert';
 import {
     Box,
     Paper,
@@ -26,10 +26,12 @@ import {
     useClases,
     useClasesMutations,
     useReservas,
-    useReservasMutations
+    useReservasMutations,
+    useAutoUpdateStatus
 } from '../../hooks';
 import { ModalClase } from './ModalClase';
 import { ModalReserva } from './ModalReserva';
+import { ModalGestionClase } from './ModalGestionClase';
 import { EventTypeDialog } from '../Shared';
 import { EventDetailsDialog } from './EventDetailsDialog';
 import { Reserva, ClasePublica, Usuario } from '../../types';
@@ -38,10 +40,13 @@ export const CalendarioGestion = () => {
     const theme = useTheme();
     const { pistas } = usePistas();
     const { usuarios } = useUsuarios();
-    const { clases } = useClases();
+    const { clases, refetch: refetchClases } = useClases();
     const { createClase: createClaseMutation, updateClase, deleteClase } = useClasesMutations();
-    const { reservas } = useReservas();
+    const { reservas, refetch: refetchReservas } = useReservas();
     const { createReserva: createReservaMutation, updateReserva, deleteReserva } = useReservasMutations();
+    
+    // Auto-actualizar estados basándose en fecha/hora
+    useAutoUpdateStatus();
 
     // Estado para modales de creación/edición
     const [modalClaseAbierto, setModalClaseAbierto] = useState(false);
@@ -57,6 +62,10 @@ export const CalendarioGestion = () => {
     const [detailsOpen, setDetailsOpen] = useState(false);
     const [selectedEvent, setSelectedEvent] = useState<ClasePublica | Reserva | null>(null);
     const [selectedEventType, setSelectedEventType] = useState<'clase' | 'reserva' | null>(null);
+
+    // Estado para Modal de Gestión de Clase
+    const [gestionClaseOpen, setGestionClaseOpen] = useState(false);
+    const [claseParaGestionar, setClaseParaGestionar] = useState<ClasePublica | null>(null);
 
     // Estado del calendario
     const obtenerFechaInicial = (): Date => {
@@ -88,14 +97,22 @@ export const CalendarioGestion = () => {
         localStorage.setItem('calendario-fecha-seleccionada', nuevaFecha.toISOString());
     };
 
-    // Colores según estado (Palette Profesional)
+    // Colores según tipo y estado (Sistema diagonal profesional)
     const COLORS = {
-        clase: { bg: '#3949ab', border: '#283593' }, // Indigo 600
-        reserva: {
-            confirmada: { bg: '#2e7d32', border: '#1b5e20' }, // Green 800
-            pendiente: { bg: '#ef6c00', border: '#e65100' }, // Orange 800
-            cancelada: { bg: '#c62828', border: '#b71c1c' }, // Red 800
-            completada: { bg: '#1565c0', border: '#0d47a1' } // Blue 800
+        tipo: {
+            reserva: '#2196F3', // Azul - intuitivo para reservas
+            clase: '#4CAF50'    // Verde - intuitivo para clases/actividades
+        },
+        estado: {
+            pendiente: '#FF9800',   // Naranja - alerta de pendiente
+            confirmado: '#388E3C',  // Verde oscuro - todo OK
+            confirmada: '#388E3C',  // Alias para reservas
+            en_curso: '#9C27B0',    // Púrpura - activo ahora
+            completado: '#757575',  // Gris - finalizado
+            completada: '#757575',  // Alias para reservas
+            cancelado: '#F44336',   // Rojo - cancelado
+            cancelada: '#F44336',   // Alias para reservas
+            no_show: '#D32F2F'      // Rojo oscuro - no apareció
         }
     };
 
@@ -118,18 +135,22 @@ export const CalendarioGestion = () => {
         return reservas
             .filter(reserva => reserva && reserva.id && reserva.pistaId)
             .map(reserva => {
-                const statusColor = COLORS.reserva[reserva.status as keyof typeof COLORS.reserva] || COLORS.reserva.pendiente;
+                const colorTipo = COLORS.tipo.reserva;
+                const colorEstado = COLORS.estado[reserva.status as keyof typeof COLORS.estado] || COLORS.estado.pendiente;
+                
                 return {
                     id: `reserva-${reserva.id}`,
                     resourceId: reserva.pistaId.toString(),
                     title: '', // Título personalizado en render
                     start: reserva.fechaHoraInicio,
                     end: reserva.fechaHoraFin,
-                    backgroundColor: statusColor.bg,
-                    borderColor: statusColor.border,
+                    backgroundColor: 'transparent', // Usaremos gradiente personalizado
+                    borderColor: '#424242',
                     extendedProps: {
                         tipo: 'reserva',
-                        reserva: reserva
+                        reserva: reserva,
+                        colorTipo,
+                        colorEstado
                     }
                 };
             });
@@ -141,19 +162,26 @@ export const CalendarioGestion = () => {
 
         return clases
             .filter(clase => clase && clase.id && clase.pistaId)
-            .map(clase => ({
-                id: `clase-${clase.id}`,
-                resourceId: clase.pistaId.toString(),
-                title: '', // Título personalizado en render
-                start: clase.fechaHoraInicio,
-                end: clase.fechaHoraFin,
-                backgroundColor: COLORS.clase.bg,
-                borderColor: COLORS.clase.border,
-                extendedProps: {
-                    tipo: 'clase',
-                    clase: clase
-                }
-            }));
+            .map(clase => {
+                const colorTipo = COLORS.tipo.clase;
+                const colorEstado = COLORS.estado[clase.status as keyof typeof COLORS.estado] || COLORS.estado.pendiente;
+                
+                return {
+                    id: `clase-${clase.id}`,
+                    resourceId: clase.pistaId.toString(),
+                    title: '', // Título personalizado en render
+                    start: clase.fechaHoraInicio,
+                    end: clase.fechaHoraFin,
+                    backgroundColor: 'transparent', // Usaremos gradiente personalizado
+                    borderColor: '#424242',
+                    extendedProps: {
+                        tipo: 'clase',
+                        clase: clase,
+                        colorTipo,
+                        colorEstado
+                    }
+                };
+            });
     }, [clases]);
 
     // Combinar todos los eventos
@@ -171,6 +199,16 @@ export const CalendarioGestion = () => {
         const pista = pistas.find(p => p.id === pistaId);
 
         if (!pistaId) return;
+
+        // VALIDAR QUE NO SEA FECHA PASADA
+        const fechaSeleccionada = new Date(selectInfo.startStr);
+        const ahora = new Date();
+        
+        if (fechaSeleccionada < ahora) {
+            await errorAlert('Fecha pasada', 'No se pueden crear eventos en fechas u horas pasadas.');
+            selectInfo.view.calendar.unselect();
+            return;
+        }
 
         setFechasIniciales({
             fechaHoraInicio: selectInfo.startStr,
@@ -216,13 +254,33 @@ export const CalendarioGestion = () => {
         setDetailsOpen(true);
     };
 
+    // Manejar gestión de miembros desde dialog
+    const handleManageMembers = (clase: ClasePublica) => {
+        setDetailsOpen(false);
+        setClaseParaGestionar(clase);
+        setGestionClaseOpen(true);
+    };
+
     // Handlers para Create (el contexto ya actualiza el estado automáticamente)
     const handleCreateClase = async (data: any) => {
         await createClaseMutation(data);
+        await refetchClases(); // Refrescar calendario
     };
 
     const handleCreateReserva = async (data: any) => {
         await createReservaMutation(data);
+        await refetchReservas(); // Refrescar calendario
+    };
+
+    // Handlers para Update con refetch
+    const handleUpdateClase = async (slug: string, data: any) => {
+        await updateClase(slug, data);
+        await refetchClases(); // Refrescar calendario
+    };
+
+    const handleUpdateReserva = async (slug: string, data: any) => {
+        await updateReserva(slug, data);
+        await refetchReservas(); // Refrescar calendario
     };
 
     // Acciones desde Detalles
@@ -243,7 +301,7 @@ export const CalendarioGestion = () => {
         setDetailsOpen(false);
 
         const isClase = selectedEventType === 'clase';
-        const result = await Swal.fire({
+        const result = await showAlert({
             title: isClase ? '¿Eliminar clase?' : '¿Eliminar reserva?',
             text: 'Esta acción no se puede deshacer',
             icon: 'warning',
@@ -258,26 +316,29 @@ export const CalendarioGestion = () => {
             try {
                 if (isClase) {
                     await deleteClase(event.slug);
+                    await refetchClases(); // Refrescar calendario
                 } else {
                     await deleteReserva(event.slug);
+                    await refetchReservas(); // Refrescar calendario
                 }
-                Swal.fire(
+                await successAlert(
                     '¡Eliminado!',
-                    `La ${isClase ? 'clase' : 'reserva'} ha sido eliminada.`,
-                    'success'
+                    `La ${isClase ? 'clase' : 'reserva'} ha sido eliminada.`
                 );
             } catch (error) {
                 console.error(error);
-                Swal.fire('Error', 'No se pudo eliminar el evento.', 'error');
+                await errorAlert('Error', 'No se pudo eliminar el evento.');
             }
         }
     };
 
-    // Renderizado profesional del contenido del evento
+    // Renderizado profesional del contenido del evento con fondo diagonal
     const renderEventoContenido = (eventInfo: EventContentArg) => {
         const tipo = eventInfo.event.extendedProps.tipo;
         const isClase = tipo === 'clase';
         const data = isClase ? eventInfo.event.extendedProps.clase : eventInfo.event.extendedProps.reserva;
+        const colorTipo = eventInfo.event.extendedProps.colorTipo;
+        const colorEstado = eventInfo.event.extendedProps.colorEstado;
         
         // Calcular duración del evento en minutos
         const start = new Date(eventInfo.event.start!);
@@ -301,40 +362,54 @@ export const CalendarioGestion = () => {
         if (esCorto) {
             return (
                 <Box sx={{
-                    px: 1.2,
-                    py: 0.5,
+                    position: 'relative',
                     height: '100%',
-                    display: 'flex',
-                    flexDirection: 'row',
-                    alignItems: 'center',
-                    justifyContent: 'space-between',
-                    gap: 0.5,
-                    overflow: 'hidden'
+                    width: '100%',
+                    overflow: 'hidden',
+                    borderRadius: '4px',
+                    // Fondo diagonal: triángulo superior = tipo, triángulo inferior = estado
+                    background: `linear-gradient(135deg, ${colorTipo} 0%, ${colorTipo} 49%, ${colorEstado} 51%, ${colorEstado} 100%)`,
+                    border: '1px solid rgba(255,255,255,0.2)',
+                    boxShadow: '0 2px 4px rgba(0,0,0,0.1)'
                 }}>
-                    <Typography 
-                        variant="body2" 
-                        fontWeight="600" 
-                        noWrap
-                        sx={{ 
-                            fontSize: '0.75rem',
-                            color: 'white',
-                            textShadow: '0 1px 2px rgba(0,0,0,0.3)',
-                            flex: 1
-                        }}
-                    >
-                        {titulo}
-                    </Typography>
-                    <Typography 
-                        variant="caption" 
-                        noWrap
-                        sx={{ 
-                            color: 'rgba(255,255,255,0.9)',
-                            fontWeight: 500,
-                            fontSize: '0.7rem'
-                        }}
-                    >
-                        {eventInfo.timeText}
-                    </Typography>
+                    <Box sx={{
+                        px: 1.2,
+                        py: 0.5,
+                        height: '100%',
+                        display: 'flex',
+                        flexDirection: 'row',
+                        alignItems: 'center',
+                        justifyContent: 'space-between',
+                        gap: 0.5,
+                        position: 'relative',
+                        zIndex: 1
+                    }}>
+                        <Typography 
+                            variant="body2" 
+                            fontWeight="600" 
+                            noWrap
+                            sx={{ 
+                                fontSize: '0.75rem',
+                                color: 'white',
+                                textShadow: '0 1px 3px rgba(0,0,0,0.5)',
+                                flex: 1
+                            }}
+                        >
+                            {titulo}
+                        </Typography>
+                        <Typography 
+                            variant="caption" 
+                            noWrap
+                            sx={{ 
+                                color: 'rgba(255,255,255,0.95)',
+                                fontWeight: 500,
+                                fontSize: '0.7rem',
+                                textShadow: '0 1px 2px rgba(0,0,0,0.5)'
+                            }}
+                        >
+                            {eventInfo.timeText}
+                        </Typography>
+                    </Box>
                 </Box>
             );
         }
@@ -342,54 +417,69 @@ export const CalendarioGestion = () => {
         // Layout expandido para eventos largos
         return (
             <Box sx={{
-                px: 1.5,
-                py: 1,
+                position: 'relative',
                 height: '100%',
-                display: 'flex',
-                flexDirection: 'column',
-                justifyContent: 'center',
-                gap: 0.8,
-                overflow: 'hidden'
+                width: '100%',
+                overflow: 'hidden',
+                borderRadius: '4px',
+                // Fondo diagonal: triángulo superior = tipo, triángulo inferior = estado
+                background: `linear-gradient(135deg, ${colorTipo} 0%, ${colorTipo} 49%, ${colorEstado} 51%, ${colorEstado} 100%)`,
+                border: '1px solid rgba(255,255,255,0.2)',
+                boxShadow: '0 2px 4px rgba(0,0,0,0.1)'
             }}>
-                <Typography 
-                    variant="body2" 
-                    fontWeight="600" 
-                    noWrap
-                    sx={{ 
-                        fontSize: '0.875rem',
-                        color: 'white',
-                        textShadow: '0 1px 3px rgba(0,0,0,0.3)',
-                        letterSpacing: '0.01em'
-                    }}
-                >
-                    {titulo}
-                </Typography>
-                <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', gap: 1 }}>
+                <Box sx={{
+                    px: 1.5,
+                    py: 1,
+                    height: '100%',
+                    display: 'flex',
+                    flexDirection: 'column',
+                    justifyContent: 'center',
+                    gap: 0.8,
+                    position: 'relative',
+                    zIndex: 1
+                }}>
                     <Typography 
-                        variant="caption" 
+                        variant="body2" 
+                        fontWeight="600" 
+                        noWrap
                         sx={{ 
-                            color: 'rgba(255,255,255,0.95)',
-                            fontWeight: 600,
-                            fontSize: '0.75rem'
+                            fontSize: '0.875rem',
+                            color: 'white',
+                            textShadow: '0 1px 3px rgba(0,0,0,0.5)',
+                            letterSpacing: '0.01em'
                         }}
                     >
-                        {eventInfo.timeText}
+                        {titulo}
                     </Typography>
-                    {isClase && data.nivel && (
-                        <Chip 
-                            label={data.nivel.slice(0, 3).toUpperCase()} 
-                            size="small"
+                    <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', gap: 1 }}>
+                        <Typography 
+                            variant="caption" 
                             sx={{ 
-                                height: '20px',
-                                fontSize: '0.625rem',
-                                fontWeight: 700,
-                                bgcolor: 'rgba(255,255,255,0.2)',
-                                color: 'white',
-                                border: '1px solid rgba(255,255,255,0.3)',
-                                '& .MuiChip-label': { px: 0.8, py: 0 }
+                                color: 'rgba(255,255,255,0.95)',
+                                fontWeight: 600,
+                                fontSize: '0.75rem',
+                                textShadow: '0 1px 2px rgba(0,0,0,0.5)'
                             }}
-                        />
-                    )}
+                        >
+                            {eventInfo.timeText}
+                        </Typography>
+                        {isClase && data.nivel && (
+                            <Chip 
+                                label={data.nivel.slice(0, 3).toUpperCase()} 
+                                size="small"
+                                sx={{ 
+                                    height: '20px',
+                                    fontSize: '0.625rem',
+                                    fontWeight: 700,
+                                    bgcolor: 'rgba(255,255,255,0.25)',
+                                    color: 'white',
+                                    border: '1px solid rgba(255,255,255,0.4)',
+                                    '& .MuiChip-label': { px: 0.8, py: 0 },
+                                    textShadow: '0 1px 2px rgba(0,0,0,0.5)'
+                                }}
+                            />
+                        )}
+                    </Box>
                 </Box>
             </Box>
         );
@@ -421,128 +511,74 @@ export const CalendarioGestion = () => {
     };
 
     return (
-        <Box>
-            {/* Header / Toolbar */}
+        <Box sx={{ height: '100%', overflow: 'hidden', display: 'flex', flexDirection: 'column', p: 1 }}>
+            {/* Header Compacto: Fecha + Controles + Leyenda */}
             <Paper
                 elevation={0}
                 sx={{
-                    p: 2,
-                    mb: 2,
+                    px: 2,
+                    py: 0.5,
+                    mb: 1,
                     display: 'flex',
                     justifyContent: 'space-between',
                     alignItems: 'center',
                     border: '1px solid',
                     borderColor: 'divider',
-                    borderRadius: 2
-                }}
-            >
-                <Stack direction="row" alignItems="center" spacing={2}>
-                    <Typography variant="h5" fontWeight="bold" color="text.primary">
-                        {fechaSeleccionada.toLocaleDateString('es-ES', {
-                            weekday: 'long',
-                            year: 'numeric',
-                            month: 'long',
-                            day: 'numeric'
-                        }).replace(/^./, (str) => str.toUpperCase())}
-                    </Typography>
-                </Stack>
-
-                <Stack direction="row" spacing={1}>
-                    <IconButton onClick={handleAnterior} sx={{ border: '1px solid', borderColor: 'divider' }}>
-                        <PrevIcon />
-                    </IconButton>
-                    <IconButton onClick={handleHoy} color="primary" sx={{ border: '1px solid', borderColor: 'divider', bgcolor: alpha(theme.palette.primary.main, 0.1) }}>
-                        <TodayIcon />
-                    </IconButton>
-                    <IconButton onClick={handleSiguiente} sx={{ border: '1px solid', borderColor: 'divider' }}>
-                        <NextIcon />
-                    </IconButton>
-                </Stack>
-            </Paper>
-
-            {/* Leyenda Moderna */}
-            <Paper
-                elevation={0}
-                sx={{
-                    p: 2,
-                    mb: 2,
-                    border: '1px solid',
-                    borderColor: 'divider',
                     borderRadius: 2,
-                    display: 'flex',
-                    flexWrap: 'wrap',
-                    gap: 1.5,
-                    alignItems: 'center'
+                    flexShrink: 0,
+                    gap: 2
                 }}
             >
-                <Typography variant="body2" fontWeight="600" color="text.secondary" sx={{ mr: 1 }}>
-                    Estados:
-                </Typography>
-                <Chip
-                    label="Clase"
-                    size="small"
-                    sx={{
-                        bgcolor: COLORS.clase.bg,
-                        color: 'white',
-                        fontWeight: 600,
-                        '&:hover': { bgcolor: COLORS.clase.border }
-                    }}
-                />
-                <Chip
-                    label="Confirmada"
-                    size="small"
-                    sx={{
-                        bgcolor: COLORS.reserva.confirmada.bg,
-                        color: 'white',
-                        fontWeight: 600,
-                        '&:hover': { bgcolor: COLORS.reserva.confirmada.border }
-                    }}
-                />
-                <Chip
-                    label="Pendiente"
-                    size="small"
-                    sx={{
-                        bgcolor: COLORS.reserva.pendiente.bg,
-                        color: 'white',
-                        fontWeight: 600,
-                        '&:hover': { bgcolor: COLORS.reserva.pendiente.border }
-                    }}
-                />
-                <Chip
-                    label="Completada"
-                    size="small"
-                    sx={{
-                        bgcolor: COLORS.reserva.completada.bg,
-                        color: 'white',
-                        fontWeight: 600,
-                        '&:hover': { bgcolor: COLORS.reserva.completada.border }
-                    }}
-                />
-                <Chip
-                    label="Cancelada"
-                    size="small"
-                    sx={{
-                        bgcolor: COLORS.reserva.cancelada.bg,
-                        color: 'white',
-                        fontWeight: 600,
-                        '&:hover': { bgcolor: COLORS.reserva.cancelada.border }
-                    }}
-                />
+                {/* Fecha y Controles */}
+                <Stack direction="row" alignItems="center" spacing={1}>
+                    <Typography variant="body2" fontWeight="600" color="text.primary" sx={{ fontSize: '0.85rem' }}>
+                        {fechaSeleccionada.toLocaleDateString('es-ES', {
+                            day: 'numeric',
+                            month: 'short',
+                            year: 'numeric'
+                        })}
+                    </Typography>
+                    
+                    <Stack direction="row" spacing={0.5}>
+                        <IconButton size="small" onClick={handleAnterior} sx={{ p: 0.5, border: '1px solid', borderColor: 'divider' }}>
+                            <PrevIcon sx={{ fontSize: 16 }} />
+                        </IconButton>
+                        <IconButton size="small" onClick={handleHoy} color="primary" sx={{ p: 0.5, border: '1px solid', borderColor: 'divider', bgcolor: alpha(theme.palette.primary.main, 0.1) }}>
+                            <TodayIcon sx={{ fontSize: 16 }} />
+                        </IconButton>
+                        <IconButton size="small" onClick={handleSiguiente} sx={{ p: 0.5, border: '1px solid', borderColor: 'divider' }}>
+                            <NextIcon sx={{ fontSize: 16 }} />
+                        </IconButton>
+                    </Stack>
+                </Stack>
+
+                {/* Leyenda Compacta */}
+                <Stack direction="row" spacing={0.5} alignItems="center" sx={{ flexWrap: 'wrap', gap: 0.5 }}>
+                    <Chip label="Reserva" size="small" sx={{ bgcolor: COLORS.tipo.reserva, color: 'white', height: 18, fontSize: '0.65rem', px: 0.5 }} />
+                    <Chip label="Clase" size="small" sx={{ bgcolor: COLORS.tipo.clase, color: 'white', height: 18, fontSize: '0.65rem', px: 0.5 }} />
+                    <Box sx={{ width: 4 }} />
+                    <Chip label="Pendiente" size="small" sx={{ bgcolor: COLORS.estado.pendiente, color: 'white', height: 18, fontSize: '0.65rem', px: 0.5 }} />
+                    <Chip label="Confirmado" size="small" sx={{ bgcolor: COLORS.estado.confirmado, color: 'white', height: 18, fontSize: '0.65rem', px: 0.5 }} />
+                    <Chip label="En curso" size="small" sx={{ bgcolor: COLORS.estado.en_curso, color: 'white', height: 18, fontSize: '0.65rem', px: 0.5 }} />
+                    <Chip label="Completado" size="small" sx={{ bgcolor: COLORS.estado.completado, color: 'white', height: 18, fontSize: '0.65rem', px: 0.5 }} />
+                    <Chip label="Cancelado" size="small" sx={{ bgcolor: COLORS.estado.cancelado, color: 'white', height: 18, fontSize: '0.65rem', px: 0.5 }} />
+                </Stack>
             </Paper>
 
             {/* Calendario Profesional */}
             <Paper
                 elevation={0}
                 sx={{
-                    p: 2,
+                    p: 1,
                     border: '1px solid',
                     borderColor: 'divider',
                     borderRadius: 2,
-                    // Altura fija que ocupa el viewport disponible
-                    height: 'calc(100vh - 320px)',
-                    minHeight: '700px',
+                    // Ocupa el espacio restante con scroll interno
+                    flex: 1,
+                    minHeight: 0, // Importante para flex
                     display: 'flex',
                     flexDirection: 'column',
+                    overflow: 'hidden', // Evita que el Paper haga scroll
                     // Estilos personalizados profesionales para FullCalendar
                     '& .fc': {
                         fontFamily: theme.typography.fontFamily,
@@ -550,7 +586,8 @@ export const CalendarioGestion = () => {
                         width: '100%'
                     },
                     '& .fc-view-harness': {
-                        height: '100% !important'
+                        height: '100% !important',
+                        overflow: 'hidden' // Solo el scroller interno hace scroll
                     },
                     '& .fc-scrollgrid': {
                         border: 'none !important',
@@ -661,7 +698,7 @@ export const CalendarioGestion = () => {
                 open={modalClaseAbierto}
                 onClose={handleCerrarModalClase}
                 onCreate={handleCreateClase}
-                onUpdate={updateClase}
+                onUpdate={handleUpdateClase}
                 claseEditando={claseEditando}
                 fechasIniciales={fechasIniciales}
                 pistas={pistas}
@@ -674,7 +711,7 @@ export const CalendarioGestion = () => {
                 open={modalReservaAbierto}
                 onClose={handleCerrarModalReserva}
                 onCreate={handleCreateReserva}
-                onUpdate={updateReserva}
+                onUpdate={handleUpdateReserva}
                 reservaEditando={reservaEditando}
                 fechasIniciales={fechasIniciales}
                 pistas={pistas}
@@ -701,7 +738,22 @@ export const CalendarioGestion = () => {
                 type={selectedEventType}
                 onEdit={handleEditEvent}
                 onDelete={handleDeleteEvent}
+                onManageMembers={handleManageMembers}
             />
+
+            {/* Modal de Gestión de Clase */}
+            {claseParaGestionar && (
+                <ModalGestionClase
+                    open={gestionClaseOpen}
+                    onClose={() => {
+                        setGestionClaseOpen(false);
+                        setClaseParaGestionar(null);
+                    }}
+                    claseId={claseParaGestionar.id}
+                    claseNombre={claseParaGestionar.nombre}
+                    maxParticipantes={claseParaGestionar.maxParticipantes}
+                />
+            )}
         </Box>
     );
 };

@@ -5,6 +5,9 @@ import com.emotivapoli.pista.domain.entity.Pista;
 import com.emotivapoli.pista.infrastructure.mapper.PistaMapper;
 import com.emotivapoli.pista.infrastructure.repository.PistaRepository;
 import com.emotivapoli.utils.SlugUtils;
+import com.emotivapoli.exception.DuplicateResourceException;
+import com.emotivapoli.exception.ResourceNotFoundException;
+import com.emotivapoli.exception.ValidationException;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
@@ -32,26 +35,29 @@ public class PistaService {
     // Por ID
     public PistaDTO getPistaById(Long id) {
         Pista pista = pistaRepository.findById(id)
-                .orElseThrow(() -> new RuntimeException("Pista no encontrada con ID: " + id));
+                .orElseThrow(() -> new ResourceNotFoundException("Pista no encontrada con ID: " + id));
         return pistaMapper.toDTO(pista);
     }
 
     // Por slug
     public PistaDTO getPistaBySlug(String slug) {
         Pista pista = pistaRepository.findBySlug(slug)
-                .orElseThrow(() -> new RuntimeException("Pista no encontrada con slug: " + slug));
+                .orElseThrow(() -> new ResourceNotFoundException("Pista no encontrada con slug: " + slug));
         return pistaMapper.toDTO(pista);
     }
 
     // Crear
     public PistaDTO createPista(PistaDTO pistaDTO) {
+        // Validar campos obligatorios
+        if (pistaDTO.getNombre() == null || pistaDTO.getNombre().trim().isEmpty()) {
+            throw new ValidationException("El nombre de la pista es obligatorio");
+        }
+        if (pistaDTO.getTipo() == null || pistaDTO.getTipo().trim().isEmpty()) {
+            throw new ValidationException("El tipo de pista es obligatorio");
+        }
+
+        // Generar slug con 4 números aleatorios
         String slug = SlugUtils.generateSlug(pistaDTO.getNombre());
-        
-        pistaRepository.findBySlug(slug)
-                .filter(p -> !"eliminado".equals(p.getStatus()))
-                .ifPresent(p -> {
-                    throw new RuntimeException("Ya existe una pista activa con ese nombre");
-                });
 
         Pista pista = pistaMapper.toEntity(pistaDTO);
         pista.setSlug(slug);
@@ -64,20 +70,16 @@ public class PistaService {
     // Actualizar
     public PistaDTO updatePista(Long id, PistaDTO pistaDTO) {
         Pista existingPista = pistaRepository.findById(id)
-                .orElseThrow(() -> new RuntimeException("Pista no encontrada con ID: " + id));
+                .orElseThrow(() -> new ResourceNotFoundException("Pista no encontrada con ID: " + id));
+
+        // Validar nombre si se está actualizando
+        if (pistaDTO.getNombre() != null && pistaDTO.getNombre().trim().isEmpty()) {
+            throw new ValidationException("El nombre de la pista no puede estar vacío");
+        }
 
         String nuevoSlug = existingPista.getSlug();
-        if (!existingPista.getNombre().equals(pistaDTO.getNombre())) {
+        if (pistaDTO.getNombre() != null && !existingPista.getNombre().equals(pistaDTO.getNombre())) {
             nuevoSlug = SlugUtils.generateSlug(pistaDTO.getNombre());
-            
-            if (!nuevoSlug.equals(existingPista.getSlug())) {
-                pistaRepository.findBySlug(nuevoSlug)
-                        .filter(p -> !"eliminado".equals(p.getStatus()))
-                        .filter(p -> !p.getId().equals(id))
-                        .ifPresent(p -> {
-                            throw new RuntimeException("Ya existe una pista activa con ese nombre");
-                        });
-            }
         }
 
         existingPista.setNombre(pistaDTO.getNombre());
@@ -96,7 +98,7 @@ public class PistaService {
     // Soft delete
     public void deletePista(Long id) {
         Pista pista = pistaRepository.findById(id)
-                .orElseThrow(() -> new RuntimeException("Pista no encontrada con ID: " + id));
+                .orElseThrow(() -> new ResourceNotFoundException("Pista no encontrada con ID: " + id));
 
         pista.setStatus("eliminado");
         pista.setIsActive(false);

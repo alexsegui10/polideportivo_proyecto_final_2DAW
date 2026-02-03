@@ -18,9 +18,12 @@ import {
   Typography
 } from '@mui/material';
 import { Edit, Delete } from '@mui/icons-material';
+import GroupIcon from '@mui/icons-material/Group';
+import { errorAlert } from '../../utils/sweetAlert';
 import { Club, ClubCreateRequest, ClubUpdateRequest, Usuario } from '../../types';
 import { useUsuarios } from '../../hooks';
 import { FormField, FormSelect, UserSelector } from '../Shared';
+import { ModalGestionClub } from './ModalGestionClub';
 import { DEPORTES } from '../../constants/deportes';
 
 interface TablaClubsProps {
@@ -37,6 +40,10 @@ export const TablaClubs = ({ clubs, onCreate, onUpdate, onDelete }: TablaClubsPr
   const [modalAbierto, setModalAbierto] = useState(false);
   const [clubEditando, setClubEditando] = useState<Club | null>(null);
   const [selectorEntrenadorAbierto, setSelectorEntrenadorAbierto] = useState(false);
+
+  // Estado para modal de gestión de miembros
+  const [gestionClubOpen, setGestionClubOpen] = useState(false);
+  const [clubParaGestionar, setClubParaGestionar] = useState<Club | null>(null);
 
   const [formData, setFormData] = useState<ClubCreateRequest>({
     nombre: '',
@@ -91,19 +98,19 @@ export const TablaClubs = ({ clubs, onCreate, onUpdate, onDelete }: TablaClubsPr
 
   const handleGuardar = async () => {
     if (!formData.nombre.trim()) {
-      alert('El nombre es obligatorio');
+      await errorAlert('Error', 'El nombre es obligatorio');
       return;
     }
     if (!formData.deporte.trim()) {
-      alert('El deporte es obligatorio');
+      await errorAlert('Error', 'El deporte es obligatorio');
       return;
     }
     if (formData.entrenadorId <= 0) {
-      alert('Debes seleccionar un entrenador');
+      await errorAlert('Error', 'Debes seleccionar un entrenador');
       return;
     }
     if (formData.precioMensual < 0) {
-      alert('El precio debe ser mayor o igual a 0');
+      await errorAlert('Error', 'El precio debe ser mayor o igual a 0');
       return;
     }
 
@@ -179,6 +186,17 @@ export const TablaClubs = ({ clubs, onCreate, onUpdate, onDelete }: TablaClubsPr
                   <Chip label={club.status} color={getStatusColor(club.status)} size="small" />
                 </TableCell>
                 <TableCell>
+                  <IconButton
+                    size="small"
+                    color="primary"
+                    onClick={() => {
+                      setClubParaGestionar(club);
+                      setGestionClubOpen(true);
+                    }}
+                    title="Gestionar miembros"
+                  >
+                    <GroupIcon fontSize="small" />
+                  </IconButton>
                   <IconButton size="small" onClick={() => handleAbrirModal(club)}>
                     <Edit fontSize="small" />
                   </IconButton>
@@ -289,6 +307,21 @@ export const TablaClubs = ({ clubs, onCreate, onUpdate, onDelete }: TablaClubsPr
         roleFilter="entrenador"
         title="Seleccionar Entrenador"
       />
+
+      {/* Modal de Gestión de Miembros */}
+      {clubParaGestionar && (
+        <ModalGestionClub
+          open={gestionClubOpen}
+          onClose={() => {
+            setGestionClubOpen(false);
+            setClubParaGestionar(null);
+          }}
+          clubId={clubParaGestionar.id}
+          clubNombre={clubParaGestionar.nombre}
+          maxMiembros={clubParaGestionar.maxMiembros}
+          clubPrecioMensual={clubParaGestionar.precioMensual}
+        />
+      )}
     </Box>
   );
 };

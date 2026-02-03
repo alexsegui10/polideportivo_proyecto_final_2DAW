@@ -44,7 +44,7 @@ public class Reserva {
     private String metodoPago;
 
     @Column(nullable = false, length = 50)
-    private String status = "confirmada"; // pendiente, confirmada, cancelada, completada, eliminado
+    private String status = "pendiente"; // pendiente, confirmada, en_curso, completada, cancelada, no_show
 
     @Column(name = "is_active", nullable = false)
     private Boolean isActive = true;
