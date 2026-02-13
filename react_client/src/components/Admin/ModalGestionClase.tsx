@@ -23,7 +23,8 @@ import PersonAddIcon from '@mui/icons-material/PersonAdd';
 import CheckCircleIcon from '@mui/icons-material/CheckCircle';
 import CancelIcon from '@mui/icons-material/Cancel';
 import { showAlert, successAlert, errorAlert } from '../../utils/sweetAlert';
-import ClaseInscripcionService, { ClaseInscripcion, ClaseWaitlist } from '../../services/ClaseInscripcionService';
+import { ClaseInscripcion, ClaseWaitlist } from '../../types';
+import { useClaseInscripcionMutations } from '../../hooks/mutations/useClaseInscripcionMutations';
 import { MultiUserSelector } from '../Shared';
 import { useUsuarios } from '../../hooks';
 import { Usuario } from '../../types';
@@ -50,13 +51,22 @@ export const ModalGestionClase = ({
   const [userSelectorOpen, setUserSelectorOpen] = useState(false);
   const [userSelectorMode, setUserSelectorMode] = useState<'inscripcion' | 'waitlist'>('inscripcion');
   const { usuarios } = useUsuarios();
+  const { 
+    getInscritosByClaseId, 
+    getWaitlistByClaseId, 
+    inscribirUsuario, 
+    agregarAWaitlist, 
+    eliminarInscripcion, 
+    quitarDeWaitlist, 
+    marcarAsistencia 
+  } = useClaseInscripcionMutations();
 
   const loadData = async () => {
     setLoading(true);
     try {
       const [inscritosData, waitlistData] = await Promise.all([
-        ClaseInscripcionService.getInscritosByClaseId(claseId),
-        ClaseInscripcionService.getWaitlistByClaseId(claseId)
+        getInscritosByClaseId(claseId),
+        getWaitlistByClaseId(claseId)
       ]);
       setInscritos(inscritosData);
       setWaitlist(waitlistData);
@@ -94,14 +104,14 @@ export const ModalGestionClase = ({
     for (const usuario of usuarios) {
       try {
         if (userSelectorMode === 'inscripcion') {
-          await ClaseInscripcionService.inscribirUsuario({
+          await inscribirUsuario({
             claseId,
             usuarioId: usuario.id,
             metodoPago: 'gratuita'
           });
           exitosos.push(`${usuario.nombre} ${usuario.apellidos || ''}`);
         } else {
-          await ClaseInscripcionService.agregarAWaitlist({
+          await agregarAWaitlist({
             claseId,
             usuarioId: usuario.id
           });
@@ -169,7 +179,7 @@ export const ModalGestionClase = ({
 
     if (result.isConfirmed) {
       try {
-        await ClaseInscripcionService.eliminarInscripcion(inscripcion.uid);
+        await eliminarInscripcion(inscripcion.uid);
         await successAlert('¡Eliminado!', 'Inscripción eliminada correctamente');
         loadData();
       } catch (error) {
@@ -192,7 +202,7 @@ export const ModalGestionClase = ({
 
     if (result.isConfirmed) {
       try {
-        await ClaseInscripcionService.quitarDeWaitlist(waitlistItem.uid);
+        await quitarDeWaitlist(waitlistItem.uid);
         await successAlert('¡Quitado!', 'Usuario eliminado de la lista de espera');
         loadData();
       } catch (error) {
@@ -203,7 +213,7 @@ export const ModalGestionClase = ({
 
   const handleMarcarAsistencia = async (inscripcion: ClaseInscripcion, asistio: boolean) => {
     try {
-      await ClaseInscripcionService.marcarAsistencia(inscripcion.uid, asistio);
+      await marcarAsistencia(inscripcion.uid, asistio);
       await successAlert('¡Actualizado!', `Marcado como ${asistio ? 'asistió' : 'ausente'}`);
       loadData();
     } catch (error) {

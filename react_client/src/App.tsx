@@ -9,6 +9,8 @@ import { UsuariosProvider } from './context/UsuariosContext'
 import { PagosProvider } from './context/PagosContext'
 import { ClubsProvider } from './context/ClubsContext'
 import { ClasesProvider } from './context/ClasesContext'
+import { ClaseInscripcionProvider } from './context/ClaseInscripcionContext'
+import { ClubMiembroProvider } from './context/ClubMiembroContext'
 import { ReservasProvider } from './context/ReservasContext'
 import { Layout, DashboardLayout } from './components/Layout'
 
@@ -21,8 +23,7 @@ const ClubsPage = lazy(() => import('./pages/admin/ClubsPage'))
 const ClasesPage = lazy(() => import('./pages/admin/ClasesPage'))
 const PagosPage = lazy(() => import('./pages/admin/PagosPage'))
 const NotFoundPage = lazy(() => import('./pages/NotFoundPage'))
-/* const HorariosPage = lazy(() => import('./pages/HorariosPage'))
-const ShopPage = lazy(() => import('./pages/ShopPage')) */
+const ShopPage = lazy(() => import('./pages/ShopPage'))
 
 const LoadingFallback = () => (
   <Box
@@ -42,15 +43,17 @@ function App() {
     <ThemeProvider theme={theme}>
       <CssBaseline />
       <PistasProvider>
-        <BrowserRouter>
-          <Suspense fallback={<LoadingFallback />}>
-            <Routes>
-              {/* Rutas públicas con Header y Footer */}
-              <Route path="/" element={
-                <Layout>
-                  <HomePage />
-                </Layout>
-              } />
+        <ClasesProvider>
+          <ClubsProvider>
+            <BrowserRouter>
+              <Suspense fallback={<LoadingFallback />}>
+                <Routes>
+                  {/* Rutas públicas con Header y Footer */}
+                  <Route path="/" element={
+                    <Layout>
+                      <HomePage />
+                    </Layout>
+                  } />
 
               {/* Rutas de dashboard con Sidebar */}
               <Route path="/dashboard" element={
@@ -80,9 +83,11 @@ function App() {
                   <PistasProvider>
                     <UsuariosProvider>
                       <ClasesProvider>
-                        <ReservasProvider>
-                          <ReservasPage />
-                        </ReservasProvider>
+                        <ClaseInscripcionProvider>
+                          <ReservasProvider>
+                            <ReservasPage />
+                          </ReservasProvider>
+                        </ClaseInscripcionProvider>
                       </ClasesProvider>
                     </UsuariosProvider>
                   </PistasProvider>
@@ -93,7 +98,9 @@ function App() {
                 <DashboardLayout>
                   <UsuariosProvider>
                     <ClubsProvider>
-                      <ClubsPage />
+                      <ClubMiembroProvider>
+                        <ClubsPage />
+                      </ClubMiembroProvider>
                     </ClubsProvider>
                   </UsuariosProvider>
                 </DashboardLayout>
@@ -104,7 +111,9 @@ function App() {
                   <PistasProvider>
                     <UsuariosProvider>
                       <ClasesProvider>
-                        <ClasesPage />
+                        <ClaseInscripcionProvider>
+                          <ClasesPage />
+                        </ClaseInscripcionProvider>
                       </ClasesProvider>
                     </UsuariosProvider>
                   </PistasProvider>
@@ -119,14 +128,21 @@ function App() {
                 </DashboardLayout>
               } />
 
-              {/* <Route path="/horarios" element={<HorariosPage />} /> */}
-              {/* <Route path="/shop" element={<ShopPage />} /> */}
+              <Route path="/shop" element={
+                <Layout>
+                  <PistasProvider>
+                    <ShopPage />
+                  </PistasProvider>
+                </Layout>
+              } />
 
               {/* Ruta 404 - debe estar al final */}
               <Route path="*" element={<NotFoundPage />} />
             </Routes>
           </Suspense>
         </BrowserRouter>
+      </ClubsProvider>
+      </ClasesProvider>
       </PistasProvider>
     </ThemeProvider>
   )

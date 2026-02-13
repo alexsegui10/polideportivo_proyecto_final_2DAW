@@ -1,5 +1,5 @@
 import { useEffect } from 'react';
-import { api } from '../services/api';
+import { apiSpring as api } from '../services/apiSpring';
 
 /**
  * Hook para actualizar automáticamente los estados de clases y reservas

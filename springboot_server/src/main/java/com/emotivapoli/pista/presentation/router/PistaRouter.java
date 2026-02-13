@@ -6,6 +6,8 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
+import java.math.BigDecimal;
+
 /**
  * Router/Routes para pistas
  * Solo define los endpoints HTTP y delega al controlador
@@ -27,6 +29,27 @@ public class PistaRouter {
     @GetMapping
     public ResponseEntity<?> getAllPistas() {
         return pistaController.getAllPistas();
+    }
+
+    /**
+     * GET /api/pistas/search - Búsqueda y filtrado de pistas con paginación
+     * Query params:
+     * - q: Texto de búsqueda por nombre
+     * - tipo: Tipos de deporte separados por coma (ej: padel,tenis,futbol)
+     * - precioMax: Precio máximo por hora
+     * - page: Número de página (base 1, por defecto 1)
+     * - limit: Tamaño de página (por defecto 12, máximo 100)
+     * - sort: Ordenamiento (precio_asc, precio_desc, default)
+     */
+    @GetMapping("/search")
+    public ResponseEntity<?> searchPistas(
+            @RequestParam(required = false) String q,
+            @RequestParam(required = false) String tipo,
+            @RequestParam(required = false) BigDecimal precioMax,
+            @RequestParam(defaultValue = "1") int page,
+            @RequestParam(defaultValue = "12") int limit,
+            @RequestParam(defaultValue = "default") String sort) {
+        return pistaController.searchPistas(q, tipo, precioMax, page, limit, sort);
     }
 
     /**

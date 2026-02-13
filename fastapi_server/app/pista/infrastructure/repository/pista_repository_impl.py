@@ -12,6 +12,14 @@ class PistaRepositoryImpl(PistaRepository):
     
     def get_all(self) -> List[Pista]:
         return self.db.query(Pista).all()
+    
+    def count_all(self) -> int:
+        """Contar total de pistas"""
+        return self.db.query(Pista).count()
+    
+    def get_destacadas(self, limit: int = 6) -> List[Pista]:
+        """Obtener pistas destacadas - todas las activas"""
+        return self.db.query(Pista).filter(Pista.is_active == True).limit(limit).all()
 """     
     def get_by_id(self, pista_id: int) -> Optional[Pista]:
         return self.db.query(Pista).filter(Pista.id == pista_id).first()

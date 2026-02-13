@@ -1,6 +1,6 @@
 import { createContext, useState, useEffect, ReactNode } from 'react';
-import { ClasePublica, ClaseCreateRequest, ClaseUpdateRequest } from '../types';
-import { getClases } from '../services/queries/clasesQueries';
+import { ClasePublica, ClaseCreateRequest, ClaseUpdateRequest, Stats } from '../types';
+import { getClases, getClasesStats, getClasesPorFecha } from '../services/queries/clasesQueries';
 import { 
   createClase as createClaseService, 
   updateClase as updateClaseService, 
@@ -15,6 +15,8 @@ interface ClasesContextType {
   createClase: (clase: ClaseCreateRequest) => Promise<ClasePublica>;
   updateClase: (slug: string, clase: ClaseUpdateRequest) => Promise<ClasePublica>;
   deleteClase: (slug: string) => Promise<void>;
+  getStats: () => Promise<Stats>;
+  getClasesPorFecha: (fecha: 'hoy' | 'mañana') => Promise<ClasePublica[]>;
 }
 
 export const ClasesContext = createContext<ClasesContextType | undefined>(undefined);
@@ -80,8 +82,40 @@ export const ClasesProvider = ({ children }: ClasesProviderProps) => {
     }
   };
 
+  const handleGetStats = async (): Promise<Stats> => {
+    try {
+      setError(null);
+      return await getClasesStats();
+    } catch (err) {
+      const errorMsg = err instanceof Error ? err.message : 'Error al cargar estadísticas';
+      setError(errorMsg);
+      throw err;
+    }
+  };
+
+  const handleGetClasesPorFecha = async (fecha: 'hoy' | 'mañana'): Promise<ClasePublica[]> => {
+    try {
+      setError(null);
+      return await getClasesPorFecha(fecha);
+    } catch (err) {
+      const errorMsg = err instanceof Error ? err.message : 'Error al cargar clases';
+      setError(errorMsg);
+      throw err;
+    }
+  };
+
   return (
-    <ClasesContext.Provider value={{ clases, loading, error, refetch: fetchClases, createClase, updateClase, deleteClase }}>
+    <ClasesContext.Provider value={{ 
+      clases, 
+      loading, 
+      error, 
+      refetch: fetchClases, 
+      createClase, 
+      updateClase, 
+      deleteClase,
+      getStats: handleGetStats,
+      getClasesPorFecha: handleGetClasesPorFecha
+    }}>
       {children}
     </ClasesContext.Provider>
   );

@@ -1,6 +1,6 @@
 import { createContext, useState, useEffect, ReactNode } from 'react';
-import { Club, ClubCreateRequest, ClubUpdateRequest } from '../types';
-import { getClubs } from '../services/queries/clubsQueries';
+import { Club, ClubCreateRequest, ClubUpdateRequest, Stats } from '../types';
+import { getClubs, getClubsStats } from '../services/queries/clubsQueries';
 import { 
   createClub as createClubService, 
   updateClub as updateClubService, 
@@ -15,6 +15,8 @@ interface ClubsContextType {
   createClub: (club: ClubCreateRequest) => Promise<Club>;
   updateClub: (slug: string, club: ClubUpdateRequest) => Promise<Club>;
   deleteClub: (slug: string) => Promise<void>;
+  getStats: () => Promise<Stats>;
+  getClubs: () => Promise<Club[]>;
 }
 
 export const ClubsContext = createContext<ClubsContextType | undefined>(undefined);
@@ -80,8 +82,40 @@ export const ClubsProvider = ({ children }: ClubsProviderProps) => {
     }
   };
 
+  const handleGetStats = async (): Promise<Stats> => {
+    try {
+      setError(null);
+      return await getClubsStats();
+    } catch (err) {
+      const errorMsg = err instanceof Error ? err.message : 'Error al cargar estadísticas';
+      setError(errorMsg);
+      throw err;
+    }
+  };
+
+  const handleGetClubs = async (): Promise<Club[]> => {
+    try {
+      setError(null);
+      return await getClubs();
+    } catch (err) {
+      const errorMsg = err instanceof Error ? err.message : 'Error al cargar clubs';
+      setError(errorMsg);
+      throw err;
+    }
+  };
+
   return (
-    <ClubsContext.Provider value={{ clubs, loading, error, refetch: fetchClubs, createClub, updateClub, deleteClub }}>
+    <ClubsContext.Provider value={{ 
+      clubs, 
+      loading, 
+      error, 
+      refetch: fetchClubs, 
+      createClub, 
+      updateClub, 
+      deleteClub,
+      getStats: handleGetStats,
+      getClubs: handleGetClubs
+    }}>
       {children}
     </ClubsContext.Provider>
   );

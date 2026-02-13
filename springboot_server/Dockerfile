@@ -3,15 +3,12 @@ FROM maven:3.9-eclipse-temurin-17-alpine AS build
 
 WORKDIR /app
 
-# Copy pom.xml and download dependencies
+# Copy pom.xml and source code
 COPY pom.xml .
-RUN mvn dependency:go-offline -B
-
-# Copy source code
 COPY src ./src
 
-# Build the application
-RUN mvn clean package -DskipTests
+# Build the application (dependencies will be downloaded automatically)
+RUN mvn clean package -DskipTests -B
 
 # Production stage
 FROM eclipse-temurin:17-jre-alpine

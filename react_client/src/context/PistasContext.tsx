@@ -1,6 +1,6 @@
 import { createContext, useState, useEffect, ReactNode } from 'react';
-import { Pista, PistaRequest } from '../types';
-import { getPistas } from '../services/queries/pistasQueries';
+import { Pista, PistaRequest, PistaSearchParams, PistaSearchResponse, Stats } from '../types';
+import { getPistas, searchPistas, getPistasStats, getPistasDestacadas } from '../services/queries/pistasQueries';
 import { createPista as createPistaService, updatePista as updatePistaService, deletePista as deletePistaService } from '../services/mutations/pistasMutations';
 
 interface PistasContextType {
@@ -11,6 +11,9 @@ interface PistasContextType {
   createPista: (pista: PistaRequest) => Promise<Pista>;
   updatePista: (slug: string, pista: PistaRequest) => Promise<Pista>;
   deletePista: (slug: string) => Promise<void>;
+  searchPistas: (params: PistaSearchParams) => Promise<PistaSearchResponse>;
+  getStats: () => Promise<Stats>;
+  getDestacadas: (limit?: number) => Promise<Pista[]>;
 }
 
 export const PistasContext = createContext<PistasContextType | undefined>(undefined);
@@ -92,6 +95,39 @@ export const PistasProvider = ({ children }: PistasProviderProps) => {
     }
   };
 
+  const handleSearchPistas = async (params: PistaSearchParams): Promise<PistaSearchResponse> => {
+    try {
+      setError(null);
+      return await searchPistas(params);
+    } catch (err) {
+      const errorMsg = err instanceof Error ? err.message : 'Error al buscar pistas';
+      setError(errorMsg);
+      throw err;
+    }
+  };
+
+  const handleGetStats = async (): Promise<Stats> => {
+    try {
+      setError(null);
+      return await getPistasStats();
+    } catch (err) {
+      const errorMsg = err instanceof Error ? err.message : 'Error al cargar estadísticas';
+      setError(errorMsg);
+      throw err;
+    }
+  };
+
+  const handleGetDestacadas = async (limit: number = 6): Promise<Pista[]> => {
+    try {
+      setError(null);
+      return await getPistasDestacadas(limit);
+    } catch (err) {
+      const errorMsg = err instanceof Error ? err.message : 'Error al cargar pistas destacadas';
+      setError(errorMsg);
+      throw err;
+    }
+  };
+
   return (
     <PistasContext.Provider value={{ 
       pistas, 
@@ -100,7 +136,10 @@ export const PistasProvider = ({ children }: PistasProviderProps) => {
       refetch: fetchPistas,
       createPista: handleCreatePista,
       updatePista: handleUpdatePista,
-      deletePista: handleDeletePista
+      deletePista: handleDeletePista,
+      searchPistas: handleSearchPistas,
+      getStats: handleGetStats,
+      getDestacadas: handleGetDestacadas
     }}>
       {children}
     </PistasContext.Provider>

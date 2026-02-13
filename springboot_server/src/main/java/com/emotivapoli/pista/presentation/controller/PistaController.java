@@ -5,13 +5,18 @@ import com.emotivapoli.pista.domain.dto.PistaDTO;
 import com.emotivapoli.pista.presentation.request.PistaRequest;
 import com.emotivapoli.pista.presentation.response.PistaResponse;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.data.domain.Page;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Component;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.RequestBody;
+import org.springframework.web.bind.annotation.RequestParam;
 
+import java.math.BigDecimal;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 import java.util.stream.Collectors;
 
 /**
@@ -104,6 +109,54 @@ public class PistaController {
         PistaDTO pistaDTO = pistaService.getPistaBySlug(slug);
         pistaService.deletePista(pistaDTO.getId());
         return ResponseEntity.noContent().build();
+    }
+
+    /**
+     * Búsqueda y filtrado de pistas con paginación
+     * 
+     * @param q Texto de búsqueda por nombre
+     * @param tipo Tipos de deporte (separados por coma: padel,tenis,futbol)
+     * @param precioMax Precio máximo por hora
+     * @param page Número de página (base 1 por defecto)
+     * @param limit Tamaño de página (por defecto 12)
+     * @param sort Ordenamiento: precio_asc, precio_desc, o default
+     * @return ResponseEntity con paginación y lista de pistas
+     */
+    public ResponseEntity<Map<String, Object>> searchPistas(
+            @RequestParam(required = false) String q,
+            @RequestParam(required = false) String tipo,
+            @RequestParam(required = false) BigDecimal precioMax,
+            @RequestParam(defaultValue = "1") int page,
+            @RequestParam(defaultValue = "12") int limit,
+            @RequestParam(defaultValue = "default") String sort) {
+        
+        // Convertir página de base 1 a base 0 para Spring Data
+        int pageNumber = Math.max(0, page - 1);
+        
+        // Validar limit
+        int validLimit = Math.min(Math.max(1, limit), 100); // Entre 1 y 100
+        
+        // Ejecutar búsqueda
+        Page<PistaDTO> pistasPage = pistaService.searchPistas(q, tipo, precioMax, pageNumber, validLimit, sort);
+        
+        // Convertir a Response
+        List<PistaResponse> content = pistasPage.getContent().stream()
+                .map(this::convertToResponse)
+                .collect(Collectors.toList());
+        
+        // Construir respuesta con metadatos de paginación
+        Map<String, Object> response = new HashMap<>();
+        response.put("content", content);
+        response.put("totalElements", pistasPage.getTotalElements());
+        response.put("totalPages", pistasPage.getTotalPages());
+        response.put("size", pistasPage.getSize());
+        response.put("number", pistasPage.getNumber() + 1); // Convertir de vuelta a base 1
+        response.put("numberOfElements", pistasPage.getNumberOfElements());
+        response.put("first", pistasPage.isFirst());
+        response.put("last", pistasPage.isLast());
+        response.put("empty", pistasPage.isEmpty());
+        
+        return ResponseEntity.ok(response);
     }
 
     // === MÉTODOS DE CONVERSIÓN ===

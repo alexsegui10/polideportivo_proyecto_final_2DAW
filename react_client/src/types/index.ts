@@ -11,6 +11,11 @@ export interface Pista {
   imagen?: string;
 }
 
+// Tipos para Stats del Home
+export interface Stats {
+  total: number;
+}
+
 // Request para crear/actualizar pista (slug se genera automáticamente)
 export interface PistaRequest {
   nombre: string;
@@ -20,6 +25,29 @@ export interface PistaRequest {
   precioHora: number;
   descripcion?: string;
   imagen?: string;
+}
+
+// Respuesta paginada de búsqueda de pistas
+export interface PistaSearchResponse {
+  content: Pista[];
+  totalElements: number;
+  totalPages: number;
+  size: number;
+  number: number;
+  numberOfElements: number;
+  first: boolean;
+  last: boolean;
+  empty: boolean;
+}
+
+// Parámetros de búsqueda de pistas
+export interface PistaSearchParams {
+  q?: string;
+  tipo?: string;
+  precioMax?: number;
+  page?: number;
+  limit?: number;
+  sort?: string;
 }
 
 // Types para Usuarios (completos según backend)

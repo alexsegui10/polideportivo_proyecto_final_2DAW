@@ -2,6 +2,8 @@ from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
 from app.config.database import engine, Base
 from app.pista.presentation.controllers import pista_controller
+from app.clase.presentation.controllers import clase_controller
+from app.club.presentation.controllers import club_controller
 
 # NO crear tablas - Spring Boot maneja las migraciones
 # Base.metadata.create_all(bind=engine)
@@ -23,6 +25,8 @@ app.add_middleware(
 
 # Incluir controllers
 app.include_router(pista_controller.router)
+app.include_router(clase_controller.router)
+app.include_router(club_controller.router)
 
 @app.get("/")
 async def root():

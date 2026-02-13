@@ -25,7 +25,8 @@ import RestoreIcon from '@mui/icons-material/Restore';
 import PauseCircleIcon from '@mui/icons-material/PauseCircle';
 import PlayCircleIcon from '@mui/icons-material/PlayCircle';
 import { showAlert, successAlert, errorAlert } from '../../utils/sweetAlert';
-import ClubMiembroService, { ClubMiembro, ClubSuscripcion } from '../../services/ClubMiembroService';
+import { ClubMiembro, ClubSuscripcion } from '../../types';
+import { useClubMiembroMutations } from '../../hooks/mutations/useClubMiembroMutations';
 import { MultiUserSelector } from '../Shared';
 import { useUsuarios } from '../../hooks';
 import { Usuario } from '../../types';
@@ -53,13 +54,25 @@ export const ModalGestionClub = ({
   const [loading, setLoading] = useState(false);
   const [userSelectorOpen, setUserSelectorOpen] = useState(false);
   const { usuarios } = useUsuarios();
+  const { 
+    getMiembrosByClubId, 
+    getSuscripcionesByClubId, 
+    inscribirMiembro, 
+    darDeBajaMiembro, 
+    expulsarMiembro, 
+    reactivarMiembro, 
+    crearSuscripcion, 
+    cancelarSuscripcion, 
+    pausarSuscripcion, 
+    reanudarSuscripcion 
+  } = useClubMiembroMutations();
 
   const loadData = async () => {
     setLoading(true);
     try {
       const [miembrosData, suscripcionesData] = await Promise.all([
-        ClubMiembroService.getMiembrosByClubId(clubId),
-        ClubMiembroService.getSuscripcionesByClubId(clubId)
+        getMiembrosByClubId(clubId),
+        getSuscripcionesByClubId(clubId)
       ]);
       setMiembros(miembrosData);
       setSuscripciones(suscripcionesData);
@@ -90,7 +103,7 @@ export const ModalGestionClub = ({
 
     for (const usuario of usuarios) {
       try {
-        await ClubMiembroService.inscribirMiembro({
+        await inscribirMiembro({
           clubId,
           usuarioId: usuario.id
         });
@@ -154,7 +167,7 @@ export const ModalGestionClub = ({
 
     if (result.isConfirmed) {
       try {
-        await ClubMiembroService.darDeBajaMiembro(miembro.uid);
+        await darDeBajaMiembro(miembro.uid);
         await successAlert('¡Dado de baja!', 'Miembro dado de baja correctamente');
         loadData();
       } catch (error) {
@@ -177,7 +190,7 @@ export const ModalGestionClub = ({
 
     if (result.isConfirmed) {
       try {
-        await ClubMiembroService.expulsarMiembro(miembro.uid);
+        await expulsarMiembro(miembro.uid);
         await successAlert('¡Expulsado!', 'Miembro expulsado correctamente');
         loadData();
       } catch (error) {
@@ -188,7 +201,7 @@ export const ModalGestionClub = ({
 
   const handleReactivar = async (miembro: ClubMiembro) => {
     try {
-      await ClubMiembroService.reactivarMiembro(miembro.uid);
+      await reactivarMiembro(miembro.uid);
       await successAlert('¡Reactivado!', 'Miembro reactivado correctamente');
       loadData();
     } catch (error) {
@@ -208,7 +221,7 @@ export const ModalGestionClub = ({
 
     if (result.isConfirmed) {
       try {
-        await ClubMiembroService.crearSuscripcion({
+        await crearSuscripcion({
           miembroUid,
           precioMensual: clubPrecioMensual
         });
@@ -235,7 +248,7 @@ export const ModalGestionClub = ({
 
     if (result.isConfirmed) {
       try {
-        await ClubMiembroService.cancelarSuscripcion(suscripcion.uid);
+        await cancelarSuscripcion(suscripcion.uid);
         await successAlert('¡Cancelada!', 'Suscripción cancelada correctamente');
         loadData();
       } catch (error) {
@@ -246,7 +259,7 @@ export const ModalGestionClub = ({
 
   const handlePausarSuscripcion = async (suscripcion: ClubSuscripcion) => {
     try {
-      await ClubMiembroService.pausarSuscripcion(suscripcion.uid);
+      await pausarSuscripcion(suscripcion.uid);
       await successAlert('¡Pausada!', 'Suscripción pausada correctamente');
       loadData();
     } catch (error) {
@@ -256,7 +269,7 @@ export const ModalGestionClub = ({
 
   const handleReanudarSuscripcion = async (suscripcion: ClubSuscripcion) => {
     try {
-      await ClubMiembroService.reanudarSuscripcion(suscripcion.uid);
+      await reanudarSuscripcion(suscripcion.uid);
       await successAlert('¡Reanudada!', 'Suscripción reanudada correctamente');
       loadData();
     } catch (error) {

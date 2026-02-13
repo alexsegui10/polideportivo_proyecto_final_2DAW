@@ -15,6 +15,15 @@ class PistaService:
         pistas = self.repository.get_all()
         return [PistaMapper.entity_to_dto(pista) for pista in pistas]
     
+    def get_stats(self) -> int:
+        """Obtener estadísticas - total de pistas"""
+        return self.repository.count_all()
+    
+    def get_destacadas(self, limit: int = 6) -> List[PistaDTO]:
+        """Obtener pistas destacadas"""
+        pistas = self.repository.get_destacadas(limit)
+        return [PistaMapper.entity_to_dto(pista) for pista in pistas]
+    
     """ def get_pista_by_id(self, pista_id: int) -> Optional[PistaDTO]:
         pista = self.repository.get_by_id(pista_id)
         if pista:

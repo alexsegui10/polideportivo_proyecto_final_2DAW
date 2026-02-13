@@ -96,7 +96,8 @@ services:
       dockerfile: Dockerfile
     container_name: emotivapoli_react
     environment:
-      - VITE_API_URL=http://localhost:8080
+      - VITE_API_URL=http://localhost:8000
+      - VITE_SPRINGBOOT_URL=http://localhost:8080
     ports:
       - "3002:3002"
     depends_on:

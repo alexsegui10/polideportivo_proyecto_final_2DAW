@@ -1,16 +1,21 @@
 package com.emotivapoli.pista.application.service;
 
+
 import com.emotivapoli.pista.domain.dto.PistaDTO;
 import com.emotivapoli.pista.domain.entity.Pista;
 import com.emotivapoli.pista.infrastructure.mapper.PistaMapper;
 import com.emotivapoli.pista.infrastructure.repository.PistaRepository;
 import com.emotivapoli.utils.SlugUtils;
-import com.emotivapoli.exception.DuplicateResourceException;
 import com.emotivapoli.exception.ResourceNotFoundException;
 import com.emotivapoli.exception.ValidationException;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.PageRequest;
+import org.springframework.data.domain.Pageable;
+import org.springframework.data.domain.Sort;
 import org.springframework.stereotype.Service;
 
+import java.math.BigDecimal;
 import java.util.List;
 import java.util.stream.Collectors;
 
@@ -104,5 +109,38 @@ public class PistaService {
         pista.setIsActive(false);
         
         pistaRepository.save(pista);
+    }
+
+    /**
+     * Búsqueda y filtrado de pistas con paginación
+     * @param q Texto de búsqueda por nombre
+     * @param tipos Tipos de deporte (separados por coma: padel,tenis,futbol)
+     * @param precioMax Precio máximo por hora
+     * @param page Número de página (base 0)
+     * @param limit Tamaño de página
+     * @param sort Ordenamiento: precio_asc, precio_desc, o default (por id)
+     * @return Page con las pistas que cumplen los criterios
+     */
+    public Page<PistaDTO> searchPistas(String q, String tipos, BigDecimal precioMax, 
+                                       int page, int limit, String sort) {
+        
+        // Construir el Sort según el parámetro
+        Sort sortBy;
+        if ("precio_asc".equalsIgnoreCase(sort)) {
+            sortBy = Sort.by(Sort.Direction.ASC, "precioHora");
+        } else if ("precio_desc".equalsIgnoreCase(sort)) {
+            sortBy = Sort.by(Sort.Direction.DESC, "precioHora");
+        } else {
+            sortBy = Sort.by(Sort.Direction.ASC, "id"); // Default
+        }
+        
+        // Crear el Pageable
+        Pageable pageable = PageRequest.of(page, limit, sortBy);
+        
+        // Delegar al repositorio la búsqueda con filtros
+        Page<Pista> pistasPage = pistaRepository.searchPistas(q, tipos, precioMax, pageable);
+        
+        // Convertir a DTO
+        return pistasPage.map(pistaMapper::toDTO);
     }
 }

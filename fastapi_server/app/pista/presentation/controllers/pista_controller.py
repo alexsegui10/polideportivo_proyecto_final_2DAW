@@ -27,6 +27,30 @@ async def get_all_pistas(db: Session = Depends(get_db)):
     # Convertir DTOs a Response
     return [PistaResponse.model_validate(dto) for dto in pistas_dto]
 
+
+@router.get("/stats", status_code=status.HTTP_200_OK)
+async def get_pistas_stats(db: Session = Depends(get_db)):
+    """
+    Obtener estadísticas de pistas - total
+    """
+    repository = PistaRepositoryImpl(db)
+    service = PistaService(repository)
+    total = service.get_stats()
+    
+    return {"total": total}
+
+
+@router.get("/destacadas", response_model=List[PistaResponse], status_code=status.HTTP_200_OK)
+async def get_pistas_destacadas(limit: int = 6, db: Session = Depends(get_db)):
+    """
+    Obtener pistas destacadas (fútbol sala, pádel, tenis)
+    """
+    repository = PistaRepositoryImpl(db)
+    service = PistaService(repository)
+    pistas_dto = service.get_destacadas(limit)
+    
+    return [PistaResponse.model_validate(dto) for dto in pistas_dto]
+
 """ 
 @router.get("/{pista_id}", response_model=PistaResponse, status_code=status.HTTP_200_OK)
 async def get_pista_by_id(pista_id: int, db: Session = Depends(get_db)):

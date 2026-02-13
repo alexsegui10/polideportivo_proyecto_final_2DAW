@@ -17,7 +17,12 @@ import {
 import {
     ChevronLeft as PrevIcon,
     ChevronRight as NextIcon,
-    Today as TodayIcon
+    Today as TodayIcon,
+    CheckCircle as CheckIcon,
+    Group as GroupIcon,
+    School as SchoolIcon,
+    PlayArrow as PlayIcon,
+    Cancel as CancelIcon
 } from '@mui/icons-material';
 import { EventClickArg, DateSelectArg, EventContentArg } from '@fullcalendar/core';
 import {
@@ -97,22 +102,22 @@ export const CalendarioGestion = () => {
         localStorage.setItem('calendario-fecha-seleccionada', nuevaFecha.toISOString());
     };
 
-    // Colores según tipo y estado (Sistema diagonal profesional)
+    // Colores estilo imagen de referencia (fondos suaves + bordes)
     const COLORS = {
         tipo: {
-            reserva: '#2196F3', // Azul - intuitivo para reservas
-            clase: '#4CAF50'    // Verde - intuitivo para clases/actividades
+            reserva: '#2196F3',      // Azul
+            clase: '#4CAF50'         // Verde
         },
         estado: {
-            pendiente: '#FF9800',   // Naranja - alerta de pendiente
-            confirmado: '#388E3C',  // Verde oscuro - todo OK
-            confirmada: '#388E3C',  // Alias para reservas
-            en_curso: '#9C27B0',    // Púrpura - activo ahora
-            completado: '#757575',  // Gris - finalizado
-            completada: '#757575',  // Alias para reservas
-            cancelado: '#F44336',   // Rojo - cancelado
-            cancelada: '#F44336',   // Alias para reservas
-            no_show: '#D32F2F'      // Rojo oscuro - no apareció
+            pendiente: '#FB8C00',    // Orange
+            confirmado: '#43A047',   // Green
+            confirmada: '#43A047',
+            en_curso: '#8E24AA',     // Purple
+            completado: '#757575',   // Grey
+            completada: '#757575',
+            cancelado: '#E53935',    // Red
+            cancelada: '#E53935',
+            no_show: '#C62828'       // Dark Red
         }
     };
 
@@ -332,12 +337,12 @@ export const CalendarioGestion = () => {
         }
     };
 
-    // Renderizado profesional del contenido del evento con fondo diagonal
+    // Renderizado profesional del contenido del evento estilo imagen de referencia
     const renderEventoContenido = (eventInfo: EventContentArg) => {
         const tipo = eventInfo.event.extendedProps.tipo;
         const isClase = tipo === 'clase';
         const data = isClase ? eventInfo.event.extendedProps.clase : eventInfo.event.extendedProps.reserva;
-        const colorTipo = eventInfo.event.extendedProps.colorTipo;
+        // const colorTipo = eventInfo.event.extendedProps.colorTipo; // Disponible para futuras funcionalidades
         const colorEstado = eventInfo.event.extendedProps.colorEstado;
         
         // Calcular duración del evento en minutos
@@ -358,6 +363,28 @@ export const CalendarioGestion = () => {
             titulo = usuario ? `${usuario.nombre} ${usuario.apellidos || ''}`.trim() : `Usuario #${data.usuarioId}`;
         }
 
+        // Obtener icono según el estado y tipo
+        const getEventIcon = () => {
+            const estado = data.estado;
+            if (estado === 'completado' || estado === 'completada') return <CheckIcon sx={{ fontSize: 16 }} />;
+            if (estado === 'en_curso') return <PlayIcon sx={{ fontSize: 16 }} />;
+            if (estado === 'cancelado' || estado === 'cancelada') return <CancelIcon sx={{ fontSize: 16 }} />;
+            if (isClase) return <SchoolIcon sx={{ fontSize: 16 }} />;
+            return <GroupIcon sx={{ fontSize: 16 }} />;
+        };
+
+        // Obtener color pastel de fondo según el estado
+        const getBgColor = () => {
+            const estado = data.estado;
+            if (estado === 'completado' || estado === 'completada') return alpha('#4CAF50', 0.08);
+            if (estado === 'en_curso') return alpha('#9C27B0', 0.08);
+            if (estado === 'confirmado' || estado === 'confirmada') return alpha('#2196F3', 0.08);
+            if (estado === 'cancelado' || estado === 'cancelada') return alpha('#F44336', 0.08);
+            if (estado === 'pendiente') return alpha('#FF9800', 0.08);
+            if (estado === 'no_show') return alpha('#D32F2F', 0.08);
+            return alpha('#757575', 0.08);
+        };
+
         // Layout compacto para eventos cortos
         if (esCorto) {
             return (
@@ -366,45 +393,49 @@ export const CalendarioGestion = () => {
                     height: '100%',
                     width: '100%',
                     overflow: 'hidden',
-                    borderRadius: '4px',
-                    // Fondo diagonal: triángulo superior = tipo, triángulo inferior = estado
-                    background: `linear-gradient(135deg, ${colorTipo} 0%, ${colorTipo} 49%, ${colorEstado} 51%, ${colorEstado} 100%)`,
-                    border: '1px solid rgba(255,255,255,0.2)',
-                    boxShadow: '0 2px 4px rgba(0,0,0,0.1)'
+                    borderRadius: '6px',
+                    backgroundColor: getBgColor(),
+                    borderLeft: `4px solid ${colorEstado}`,
+                    boxShadow: '0 1px 3px rgba(0,0,0,0.08)',
+                    cursor: 'pointer',
+                    transition: 'all 0.2s ease',
+                    '&:hover': {
+                        boxShadow: '0 4px 12px rgba(0,0,0,0.15)',
+                        transform: 'translateY(-1px)'
+                    }
                 }}>
                     <Box sx={{
-                        px: 1.2,
-                        py: 0.5,
+                        px: 1.5,
+                        py: 1,
                         height: '100%',
                         display: 'flex',
-                        flexDirection: 'row',
-                        alignItems: 'center',
-                        justifyContent: 'space-between',
-                        gap: 0.5,
-                        position: 'relative',
-                        zIndex: 1
+                        flexDirection: 'column',
+                        justifyContent: 'center',
+                        gap: 0.5
                     }}>
-                        <Typography 
-                            variant="body2" 
-                            fontWeight="600" 
-                            noWrap
-                            sx={{ 
-                                fontSize: '0.75rem',
-                                color: 'white',
-                                textShadow: '0 1px 3px rgba(0,0,0,0.5)',
-                                flex: 1
-                            }}
-                        >
-                            {titulo}
-                        </Typography>
+                        <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'start' }}>
+                            <Typography 
+                                variant="body2" 
+                                fontWeight="700" 
+                                noWrap
+                                sx={{ 
+                                    fontSize: '0.75rem',
+                                    color: alpha(colorEstado, 0.9),
+                                    flex: 1
+                                }}
+                            >
+                                {titulo}
+                            </Typography>
+                            <Box sx={{ color: colorEstado, display: 'flex', alignItems: 'center', ml: 0.5 }}>
+                                {getEventIcon()}
+                            </Box>
+                        </Box>
                         <Typography 
                             variant="caption" 
-                            noWrap
                             sx={{ 
-                                color: 'rgba(255,255,255,0.95)',
+                                color: alpha(colorEstado, 0.7),
                                 fontWeight: 500,
-                                fontSize: '0.7rem',
-                                textShadow: '0 1px 2px rgba(0,0,0,0.5)'
+                                fontSize: '0.625rem'
                             }}
                         >
                             {eventInfo.timeText}
@@ -414,6 +445,18 @@ export const CalendarioGestion = () => {
             );
         }
 
+        // Obtener texto del estado
+        const getEstadoLabel = () => {
+            const estado = data.estado;
+            if (estado === 'completado' || estado === 'completada') return 'Completado';
+            if (estado === 'en_curso') return 'En curso';
+            if (estado === 'confirmado' || estado === 'confirmada') return 'Confirmado';
+            if (estado === 'cancelado' || estado === 'cancelada') return 'Cancelado';
+            if (estado === 'pendiente') return 'Pendiente';
+            if (estado === 'no_show') return 'No Show';
+            return estado;
+        };
+
         // Layout expandido para eventos largos
         return (
             <Box sx={{
@@ -421,48 +464,66 @@ export const CalendarioGestion = () => {
                 height: '100%',
                 width: '100%',
                 overflow: 'hidden',
-                borderRadius: '4px',
-                // Fondo diagonal: triángulo superior = tipo, triángulo inferior = estado
-                background: `linear-gradient(135deg, ${colorTipo} 0%, ${colorTipo} 49%, ${colorEstado} 51%, ${colorEstado} 100%)`,
-                border: '1px solid rgba(255,255,255,0.2)',
-                boxShadow: '0 2px 4px rgba(0,0,0,0.1)'
+                borderRadius: '6px',
+                backgroundColor: getBgColor(),
+                borderLeft: `4px solid ${colorEstado}`,
+                boxShadow: '0 1px 3px rgba(0,0,0,0.08)',
+                cursor: 'pointer',
+                transition: 'all 0.2s ease',
+                '&:hover': {
+                    boxShadow: '0 4px 12px rgba(0,0,0,0.15)',
+                    transform: 'translateY(-1px)'
+                }
             }}>
                 <Box sx={{
                     px: 1.5,
-                    py: 1,
+                    py: 1.25,
                     height: '100%',
                     display: 'flex',
                     flexDirection: 'column',
-                    justifyContent: 'center',
-                    gap: 0.8,
-                    position: 'relative',
-                    zIndex: 1
+                    gap: 1
                 }}>
-                    <Typography 
-                        variant="body2" 
-                        fontWeight="600" 
-                        noWrap
-                        sx={{ 
-                            fontSize: '0.875rem',
-                            color: 'white',
-                            textShadow: '0 1px 3px rgba(0,0,0,0.5)',
-                            letterSpacing: '0.01em'
-                        }}
-                    >
-                        {titulo}
-                    </Typography>
-                    <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', gap: 1 }}>
+                    <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'start' }}>
                         <Typography 
-                            variant="caption" 
+                            variant="body2" 
+                            fontWeight="700" 
+                            noWrap
                             sx={{ 
-                                color: 'rgba(255,255,255,0.95)',
-                                fontWeight: 600,
-                                fontSize: '0.75rem',
-                                textShadow: '0 1px 2px rgba(0,0,0,0.5)'
+                                fontSize: '0.8rem',
+                                color: alpha(colorEstado, 0.9),
+                                flex: 1
                             }}
                         >
-                            {eventInfo.timeText}
+                            {titulo}
                         </Typography>
+                        <Box sx={{ color: colorEstado, display: 'flex', alignItems: 'center', ml: 0.5 }}>
+                            {getEventIcon()}
+                        </Box>
+                    </Box>
+                    <Typography 
+                        variant="caption" 
+                        sx={{ 
+                            color: alpha(colorEstado, 0.7),
+                            fontWeight: 500,
+                            fontSize: '0.65rem'
+                        }}
+                    >
+                        {eventInfo.timeText}
+                    </Typography>
+                    <Box sx={{ display: 'flex', flexWrap: 'wrap', gap: 0.5, mt: 0.5 }}>
+                        <Chip 
+                            label={getEstadoLabel()} 
+                            size="small"
+                            sx={{ 
+                                height: '20px',
+                                fontSize: '0.625rem',
+                                fontWeight: 600,
+                                bgcolor: alpha('#fff', 0.9),
+                                color: colorEstado,
+                                border: `1px solid ${alpha(colorEstado, 0.3)}`,
+                                '& .MuiChip-label': { px: 1, py: 0 }
+                            }}
+                        />
                         {isClase && data.nivel && (
                             <Chip 
                                 label={data.nivel.slice(0, 3).toUpperCase()} 
@@ -470,12 +531,11 @@ export const CalendarioGestion = () => {
                                 sx={{ 
                                     height: '20px',
                                     fontSize: '0.625rem',
-                                    fontWeight: 700,
-                                    bgcolor: 'rgba(255,255,255,0.25)',
-                                    color: 'white',
-                                    border: '1px solid rgba(255,255,255,0.4)',
-                                    '& .MuiChip-label': { px: 0.8, py: 0 },
-                                    textShadow: '0 1px 2px rgba(0,0,0,0.5)'
+                                    fontWeight: 600,
+                                    bgcolor: alpha('#fff', 0.9),
+                                    color: alpha(colorEstado, 0.8),
+                                    border: `1px solid ${alpha(colorEstado, 0.3)}`,
+                                    '& .MuiChip-label': { px: 1, py: 0 }
                                 }}
                             />
                         )}
@@ -578,64 +638,84 @@ export const CalendarioGestion = () => {
                     minHeight: 0, // Importante para flex
                     display: 'flex',
                     flexDirection: 'column',
-                    overflow: 'hidden', // Evita que el Paper haga scroll
-                    // Estilos personalizados profesionales para FullCalendar
+                    overflow: 'hidden',
+                    // Estilos imagen de referencia - limpio y profesional
                     '& .fc': {
-                        fontFamily: theme.typography.fontFamily,
+                        fontFamily: 'Inter, -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif',
                         height: '100%',
                         width: '100%'
                     },
                     '& .fc-view-harness': {
                         height: '100% !important',
-                        overflow: 'hidden' // Solo el scroller interno hace scroll
+                        overflow: 'hidden'
                     },
                     '& .fc-scrollgrid': {
                         border: 'none !important',
                         height: '100% !important'
                     },
-                    '& .fc-timegrid-slots': {
-                        // Sin scroll interno
-                    },
                     '& .fc-timegrid-slot': {
                         height: 'auto !important',
-                        minHeight: '45px',
-                        borderColor: alpha(theme.palette.divider, 0.4)
+                        minHeight: '80px', // 80px por hora como en la imagen
+                        borderColor: '#e2e8f0' // Líneas grid suaves
                     },
+                    // Header columnas pistas - estilo imagen con badges
                     '& .fc-col-header-cell': {
-                        bgcolor: alpha(theme.palette.primary.main, 0.08),
-                        py: 1.5,
+                        backgroundColor: '#f8fafc',
+                        py: 2,
                         fontWeight: 700,
-                        fontSize: '0.9rem',
-                        borderColor: theme.palette.divider,
-                        color: theme.palette.primary.main
+                        fontSize: '0.875rem',
+                        borderBottom: '1px solid #e2e8f0',
+                        borderRight: '1px solid #e2e8f0',
+                        color: '#1e293b'
                     },
                     '& .fc-timegrid-axis-cushion': {
-                        color: theme.palette.text.secondary,
-                        fontWeight: 600,
-                        fontSize: '0.8rem'
+                        color: '#64748b',
+                        fontWeight: 500,
+                        fontSize: '0.75rem'
                     },
                     '& .fc-timegrid-slot-label': {
-                        color: theme.palette.text.secondary,
-                        fontWeight: 500
+                        color: '#64748b',
+                        fontWeight: 500,
+                        fontSize: '0.75rem'
                     },
+                    '& .fc-timegrid-axis': {
+                        backgroundColor: '#ffffff'
+                    },
+                    // Línea hora actual - ROJA destacada con badge como en la imagen
+                    '& .fc-timegrid-now-indicator-line': {
+                        borderColor: '#ef4444',
+                        borderWidth: '2px',
+                        boxShadow: '0 0 4px rgba(239,68,68,0.4)'
+                    },
+                    '& .fc-timegrid-now-indicator-arrow': {
+                        borderColor: '#ef4444',
+                        borderWidth: '8px'
+                    },
+                    // Eventos - fondos pasteles, bordes gruesos
                     '& .fc-event': {
                         borderRadius: '6px',
-                        border: '2px solid rgba(255,255,255,0.2) !important',
-                        boxShadow: '0 1px 3px rgba(0,0,0,0.12), 0 1px 2px rgba(0,0,0,0.08)',
+                        border: 'none !important',
+                        backgroundColor: 'transparent !important', // Lo manejamos en el renderizador
+                        boxShadow: 'none !important',
                         cursor: 'pointer',
-                        transition: 'all 0.15s ease-in-out',
-                        padding: '6px 10px',
-                        overflow: 'hidden',
-                        fontWeight: 600,
+                        transition: 'all 0.2s ease',
+                        padding: '0 !important',
+                        overflow: 'visible',
                         '&:hover': {
-                            transform: 'translateY(-1px)',
-                            boxShadow: '0 4px 8px rgba(0,0,0,0.15), 0 2px 4px rgba(0,0,0,0.1)',
-                            zIndex: 10,
-                            borderColor: 'rgba(255,255,255,0.35) !important'
+                            transform: 'scale(1.01)'
                         }
                     },
                     '& .fc-timegrid-event-harness': {
-                        marginRight: '2px'
+                        margin: '0 4px' // Separación entre eventos
+                    },
+                    '& .fc-daygrid-day-frame': {
+                        backgroundColor: '#ffffff'
+                    },
+                    '& .fc-timegrid-col': {
+                        backgroundColor: '#ffffff',
+                        borderRight: '1px solid #e2e8f0',
+                        backgroundImage: 'linear-gradient(to bottom, #f1f5f9 1px, transparent 1px)',
+                        backgroundSize: '100% 80px' // Grid lines cada hora
                     },
                     '& .fc-timegrid-col-frame': {
                         borderColor: alpha(theme.palette.divider, 0.4)
@@ -691,6 +771,47 @@ export const CalendarioGestion = () => {
                         meridiem: false
                     }}
                 />
+            </Paper>
+
+            {/* Leyenda inferior - estilo imagen de referencia */}
+            <Paper
+                elevation={0}
+                sx={{
+                    px: 3,
+                    py: 1.5,
+                    borderTop: '1px solid',
+                    borderColor: 'divider',
+                    backgroundColor: '#fafafa',
+                    borderRadius: 0
+                }}
+            >
+                <Stack direction="row" spacing={3} alignItems="center" flexWrap="wrap">
+                    <Typography variant="caption" sx={{ fontWeight: 600, color: '#64748b', fontSize: '0.7rem', mr: 1 }}>
+                        ESTADOS:
+                    </Typography>
+                    <Stack direction="row" spacing={1.5} alignItems="center">
+                        <Box sx={{ display: 'flex', alignItems: 'center', gap: 0.75 }}>
+                            <Box sx={{ width: 12, height: 12, borderRadius: 1, bgcolor: COLORS.estado.confirmado }} />
+                            <Typography variant="caption" sx={{ fontSize: '0.7rem', color: '#475569' }}>Confirmado</Typography>
+                        </Box>
+                        <Box sx={{ display: 'flex', alignItems: 'center', gap: 0.75 }}>
+                            <Box sx={{ width: 12, height: 12, borderRadius: 1, bgcolor: COLORS.estado.en_curso }} />
+                            <Typography variant="caption" sx={{ fontSize: '0.7rem', color: '#475569' }}>En Curso</Typography>
+                        </Box>
+                        <Box sx={{ display: 'flex', alignItems: 'center', gap: 0.75 }}>
+                            <Box sx={{ width: 12, height: 12, borderRadius: 1, bgcolor: COLORS.estado.completado }} />
+                            <Typography variant="caption" sx={{ fontSize: '0.7rem', color: '#475569' }}>Completado</Typography>
+                        </Box>
+                        <Box sx={{ display: 'flex', alignItems: 'center', gap: 0.75 }}>
+                            <Box sx={{ width: 12, height: 12, borderRadius: 1, bgcolor: COLORS.estado.pendiente }} />
+                            <Typography variant="caption" sx={{ fontSize: '0.7rem', color: '#475569' }}>Pendiente</Typography>
+                        </Box>
+                        <Box sx={{ display: 'flex', alignItems: 'center', gap: 0.75 }}>
+                            <Box sx={{ width: 12, height: 12, borderRadius: 1, bgcolor: COLORS.estado.cancelado }} />
+                            <Typography variant="caption" sx={{ fontSize: '0.7rem', color: '#475569' }}>Cancelado</Typography>
+                        </Box>
+                    </Stack>
+                </Stack>
             </Paper>
 
             {/* Modales Actions */}

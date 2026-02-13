@@ -1,11 +1,20 @@
-import { Box, Container, Typography, Link, Grid } from '@mui/material'
+import { Box, Container, Typography, Link, Grid, ThemeProvider, createTheme } from '@mui/material'
 import { Link as RouterLink } from 'react-router-dom'
 import FacebookIcon from '@mui/icons-material/Facebook'
 import TwitterIcon from '@mui/icons-material/Twitter'
 import InstagramIcon from '@mui/icons-material/Instagram'
 
+const darkTheme = createTheme({
+  palette: {
+    mode: 'dark',
+    primary: { main: '#144bb8' },
+    background: { default: '#0a0e1a', paper: '#111722' },
+  },
+});
+
 export const Footer = () => {
   return (
+    <ThemeProvider theme={darkTheme}>
     <Box
       component="footer"
       sx={{
@@ -69,5 +78,6 @@ export const Footer = () => {
         </Box>
       </Container>
     </Box>
+    </ThemeProvider>
   )
 }

@@ -1,4 +1,4 @@
-import { api } from '../api';
+import { apiSpring as api } from '../apiSpring';
 import { ClaseInscripcion, ClaseWaitlist } from '../../types';
 
 export interface InscripcionCreateRequest {
