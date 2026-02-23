@@ -22,7 +22,6 @@ const ClasesShopPage = () => {
   const q = url.get('q', '');
   const deporte = url.get('deporte', '');
   const nivel = url.get('nivel', '');
-  const precioMax = url.get('precioMax', '');
   const page = Number(url.get('page', '1'));
   const limit = Number(url.get('limit', '12'));
   const sort = url.get('sort', 'default');
@@ -45,9 +44,8 @@ const ClasesShopPage = () => {
   // --- filtros ---
   const setDeporte = (v: string) => url.setMany({ deporte: v, page: 1 });
   const setNivel = (v: string) => url.setMany({ nivel: v, page: 1 });
-  const setPrecioMax = (v: string) => url.setMany({ precioMax: v, page: 1 });
   const setSort = (v: string) => url.setMany({ sort: v, page: 1 });
-  const clearFilters = () => url.setMany({ deporte: '', nivel: '', precioMax: '', page: 1 });
+  const clearFilters = () => url.setMany({ deporte: '', nivel: '', page: 1 });
 
   // --- paginación ---
   const setPage = (p: number) => url.set('page', p);
@@ -77,7 +75,6 @@ const ClasesShopPage = () => {
       q: debouncedQ || undefined,
       deporte: deporte || undefined,
       nivel: nivel || undefined,
-      precioMax: precioMax ? Number(precioMax) : undefined,
       page,
       limit,
       sort,
@@ -99,7 +96,7 @@ const ClasesShopPage = () => {
 
     return () => ac.abort();
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [debouncedQ, deporte, nivel, precioMax, page, limit, sort]);
+  }, [debouncedQ, deporte, nivel, page, limit, sort]);
 
   return (
     <ThemeProvider theme={darkTheme}>
@@ -114,8 +111,6 @@ const ClasesShopPage = () => {
             qInput={qInput} setQInput={setQInput}
             deporte={deporte} setDeporte={setDeporte}
             nivel={nivel} setNivel={setNivel}
-            precioMax={precioMax} setPrecioMax={setPrecioMax}
-            sort={sort} setSort={setSort}
             limit={limit} setLimit={setLimit}
             clearFilters={clearFilters}
           />

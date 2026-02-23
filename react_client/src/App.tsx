@@ -1,5 +1,5 @@
 import { lazy, Suspense } from 'react'
-import { BrowserRouter, Routes, Route } from 'react-router-dom'
+import { BrowserRouter, Routes, Route, Navigate } from 'react-router-dom'
 import { ThemeProvider } from '@mui/material/styles'
 import CssBaseline from '@mui/material/CssBaseline'
 import { CircularProgress, Box } from '@mui/material'
@@ -68,9 +68,9 @@ function App() {
               {/* Rutas de autenticación (login, register, recover) */}
               <Route path="/auth/*" element={<Layout><AuthPage /></Layout>} />
 
-              {/* Mantener compatibilidad con rutas antiguas */}
-              <Route path="/login" element={<Layout><AuthPage /></Layout>} />
-              <Route path="/register" element={<Layout><AuthPage /></Layout>} />
+              {/* Atajos directos para compatibilidad con links antiguos */}
+              <Route path="/login" element={<Navigate to="/auth/login" replace />} />
+              <Route path="/register" element={<Navigate to="/auth/register" replace />} />
 
               {/* Rutas de Shop */}
               <Route path="/shop" element={

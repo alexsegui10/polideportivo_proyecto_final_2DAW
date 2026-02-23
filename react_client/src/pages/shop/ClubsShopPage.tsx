@@ -115,7 +115,6 @@ const ClubsShopPage = () => {
             deporte={deporte} setDeporte={setDeporte}
             nivel={nivel} setNivel={setNivel}
             precioMax={precioMax} setPrecioMax={setPrecioMax}
-            sort={sort} setSort={setSort}
             limit={limit} setLimit={setLimit}
             clearFilters={clearFilters}
           />

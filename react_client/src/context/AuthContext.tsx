@@ -61,7 +61,7 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
     await logoutService();   // invalida DB + borra cookie HttpOnly
     setUser(null);
     setToken(null);
-    window.location.href = '/';
+    window.location.href = '/auth/login';
   };
 
   // ── Login ───────────────────────────────────────────────────────

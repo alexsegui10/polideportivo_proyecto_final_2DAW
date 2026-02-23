@@ -14,7 +14,6 @@ import java.util.Map;
 import java.util.UUID;
 
 /**
- * Servicio JWT con tiempos diferenciados por rol (doc profesora 1_ref_jwt.txt):
  *   - admin:    access 5 min  |  sin refresh (re-login)
  *   - monitor:  access 15 min |  refresh 7 días
  *   - cliente:  access 15 min |  refresh 30 días
@@ -86,10 +85,19 @@ public class TokenService {
     }
 
     private boolean isTokenExpired(String token) {
-        return extractExpiration(token).before(new Date());
+        return extractExpirationDate(token).before(new Date());
     }
 
-    private Date extractExpiration(String token) {
+    /**
+     * Devuelve la fecha de expiración del access token como LocalDateTime.
+     * Usado por JwtBlacklistService para saber cuándo limpiar la entrada.
+     */
+    public java.time.LocalDateTime extractExpiration(String token) {
+        Date exp = extractExpirationDate(token);
+        return exp.toInstant().atZone(java.time.ZoneId.systemDefault()).toLocalDateTime();
+    }
+
+    private Date extractExpirationDate(String token) {
         return extractAllClaims(token).getExpiration();
     }
 

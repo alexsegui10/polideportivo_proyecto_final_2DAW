@@ -29,13 +29,17 @@ import java.time.LocalDateTime;
 public class AuthService {
 
     private static final String REFRESH_COOKIE = "refreshToken";
-    private static final String REFRESH_PATH   = "/api/auth";
+    // path="/" para que la cookie se envíe en cualquier ruta
+    // (el proxy de Vite redirige /api/springboot/auth → /api/auth,
+    //  así que el path del navegador y el del backend son distintos)
+    private static final String REFRESH_PATH   = "/";
 
     private final UsuarioService usuarioService;
     private final UsuarioRepository usuarioRepository;
     private final PasswordEncoder passwordEncoder;
     private final TokenService tokenService;
     private final RefreshTokenService refreshTokenService;
+    private final JwtBlacklistService jwtBlacklistService;
     private final AuthenticationManager authenticationManager;
     private final UsuarioMapper usuarioMapper;
 
@@ -45,6 +49,7 @@ public class AuthService {
                        PasswordEncoder passwordEncoder,
                        TokenService tokenService,
                        RefreshTokenService refreshTokenService,
+                       JwtBlacklistService jwtBlacklistService,
                        AuthenticationManager authenticationManager,
                        UsuarioMapper usuarioMapper) {
         this.usuarioService = usuarioService;
@@ -52,6 +57,7 @@ public class AuthService {
         this.passwordEncoder = passwordEncoder;
         this.tokenService = tokenService;
         this.refreshTokenService = refreshTokenService;
+        this.jwtBlacklistService = jwtBlacklistService;
         this.authenticationManager = authenticationManager;
         this.usuarioMapper = usuarioMapper;
     }
@@ -99,7 +105,6 @@ public class AuthService {
             String role = usuarioDTO.getRole();
             String accessToken = tokenService.generateAccessToken(usuarioDTO.getEmail(), role);
 
-            // Admin → sin refresh (según doc profesora: re-login frecuente)
             if (!"admin".equalsIgnoreCase(role)) {
                 setRefreshCookie(res, usuarioDTO.getEmail(), deviceId, role);
             }
@@ -115,12 +120,22 @@ public class AuthService {
     // ── Logout ──────────────────────────────────────────────────────
 
     /**
-     * Invalida el refresh token de este dispositivo y borra la cookie.
+     * Doble invalidación en logout:
+     *   1. Revoca el REFRESH token de este dispositivo (refresh_sessions.revoked = true)
+     *   2. Añade el ACCESS token a la JWT blacklist para que no sirva hasta que expire
      */
     public void logout(HttpServletRequest req, HttpServletResponse res) {
+        // 1. Invalida refresh token (cookie)
         String rawRefreshToken = extractRefreshCookie(req);
         refreshTokenService.invalidateSession(rawRefreshToken);
         clearRefreshCookie(res);
+
+        // 2. Blacklist del access token (header Authorization: Bearer ...)
+        String authHeader = req.getHeader("Authorization");
+        if (authHeader != null && authHeader.startsWith("Bearer ")) {
+            String rawAccessToken = authHeader.substring(7);
+            jwtBlacklistService.revoke(rawAccessToken);
+        }
     }
 
     // ── Refresh ─────────────────────────────────────────────────────
@@ -171,7 +186,7 @@ public class AuthService {
                 .secure(false)          // true en producción con HTTPS
                 .path(REFRESH_PATH)
                 .maxAge(maxAgeSecs)
-                .sameSite("Strict")
+                .sameSite("Strict")     // mismo origen gracias al proxy de Vite
                 .build();
     }
 
@@ -189,6 +204,7 @@ public class AuthService {
                 .path(REFRESH_PATH)
                 .maxAge(0)
                 .sameSite("Strict")
+                .secure(false)
                 .build();
         res.addHeader(HttpHeaders.SET_COOKIE, cookie.toString());
     }

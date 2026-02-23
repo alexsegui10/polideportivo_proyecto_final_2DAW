@@ -18,7 +18,6 @@ import java.util.UUID;
 /**
  * Lógica de negocio para refresh tokens.
  *
- * Implementa el patrón completo de la profesora (1_refresh_jwt.txt):
  *   - one-time use     → cada uso rota el token (nuevo hash en DB)
  *   - familyId         → detectar reuse = token theft → revocar familia entera
  *   - deviceId         → logout por dispositivo específico
@@ -90,9 +89,12 @@ public class RefreshTokenService {
      *   6. Rotar: nuevo refreshToken con mismo familyId, actualizar hash en DB
      *   7. Generar nuevo accessToken
      *
+     * NOTA: noRollbackFor=SecurityException.class es necesario para que el
+     * revokeByFamilyId (detección de reuse) no se revierta al lanzar la excepción.
+     *
      * @return array [newAccessToken, newRefreshToken]
      */
-    @Transactional
+    @Transactional(noRollbackFor = SecurityException.class)
     public String[] rotate(String rawRefreshToken, String deviceId) {
         // 1. Validar firma y expiración
         if (!tokenService.isRefreshTokenValid(rawRefreshToken)) {

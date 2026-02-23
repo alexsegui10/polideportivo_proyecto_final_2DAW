@@ -1,4 +1,4 @@
-import { Box, TextField, Button, Slider, Typography, Select, MenuItem, FormControl } from '@mui/material';
+import { Box, TextField, Button, Typography, Select, MenuItem, FormControl, Checkbox, FormControlLabel, Slider } from '@mui/material';
 import SearchIcon from '@mui/icons-material/Search';
 
 interface FiltrosClubsProps {
@@ -10,14 +10,12 @@ interface FiltrosClubsProps {
   setNivel: (value: string) => void;
   precioMax: string;
   setPrecioMax: (value: string) => void;
-  sort: string;
-  setSort: (value: string) => void;
   limit: number;
   setLimit: (value: number) => void;
   clearFilters: () => void;
 }
 
-const deportes = ['padel', 'tenis', 'futbol sala', 'baloncesto', 'yoga', 'natacion', 'ciclismo'];
+const deportes = ['padel', 'tenis', 'futbol sala', 'baloncesto', 'yoga'];
 const niveles = ['principiante', 'intermedio', 'avanzado'];
 
 const inputSx = {
@@ -56,7 +54,6 @@ export const FiltrosClubs = ({
   deporte, setDeporte,
   nivel, setNivel,
   precioMax, setPrecioMax,
-  sort, setSort,
   limit, setLimit,
   clearFilters,
 }: FiltrosClubsProps) => {
@@ -89,15 +86,22 @@ export const FiltrosClubs = ({
 
       {/* Deporte */}
       <Box sx={{ mb: 3 }}>
-        <Typography sx={labelSx}>Deporte</Typography>
-        <FormControl fullWidth size="small">
-          <Select value={deporte} onChange={e => setDeporte(e.target.value)} displayEmpty sx={selectSx}>
-            <MenuItem value=""><em style={{ color: 'rgba(255,255,255,0.5)', fontStyle: 'normal' }}>Todos los deportes</em></MenuItem>
-            {deportes.map(d => (
-              <MenuItem key={d} value={d}>{d.charAt(0).toUpperCase() + d.slice(1)}</MenuItem>
-            ))}
-          </Select>
-        </FormControl>
+        <Typography sx={labelSx}>Tipo de Deporte</Typography>
+        {deportes.map(d => (
+          <Box key={d}>
+            <FormControlLabel
+              control={
+                <Checkbox
+                  checked={deporte === d}
+                  onChange={() => setDeporte(deporte === d ? '' : d)}
+                  sx={{ color: 'rgba(255,255,255,0.5)', '&.Mui-checked': { color: '#2563eb' }, p: 0.5 }}
+                />
+              }
+              label={<Typography sx={{ fontSize: '0.875rem', color: 'rgba(255,255,255,0.85)' }}>{d.charAt(0).toUpperCase() + d.slice(1)}</Typography>}
+              sx={{ m: 0 }}
+            />
+          </Box>
+        ))}
       </Box>
 
       {/* Nivel */}
@@ -116,7 +120,8 @@ export const FiltrosClubs = ({
       {/* Precio mensual máximo */}
       <Box sx={{ mb: 3 }}>
         <Typography sx={labelSx}>
-          Precio mensual máx. <Typography component="span" sx={{ fontSize: '0.75rem', fontWeight: 400, textTransform: 'capitalize', color: 'rgba(255,255,255,0.5)' }}>(€/mes)</Typography>
+          Precio mensual máx.{' '}
+          <Typography component="span" sx={{ fontSize: '0.75rem', fontWeight: 400, textTransform: 'capitalize', color: 'rgba(255,255,255,0.5)' }}>(€/mes)</Typography>
         </Typography>
         <Box sx={{ px: 1, pt: 2 }}>
           <Slider value={precioSliderValue}
@@ -136,16 +141,28 @@ export const FiltrosClubs = ({
         </Box>
       </Box>
 
-      {/* Ordenar */}
+      {/* Precio mensual máximo */}
       <Box sx={{ mb: 3 }}>
-        <Typography sx={labelSx}>Ordenar por</Typography>
-        <FormControl fullWidth size="small">
-          <Select value={sort} onChange={e => setSort(e.target.value)} sx={selectSx}>
-            <MenuItem value="default">Por defecto</MenuItem>
-            <MenuItem value="precio_asc">Precio: menor a mayor</MenuItem>
-            <MenuItem value="precio_desc">Precio: mayor a menor</MenuItem>
-          </Select>
-        </FormControl>
+        <Typography sx={labelSx}>
+          Precio mensual máx.{' '}
+          <Typography component="span" sx={{ fontSize: '0.75rem', fontWeight: 400, textTransform: 'capitalize', color: 'rgba(255,255,255,0.5)' }}>(€/mes)</Typography>
+        </Typography>
+        <Box sx={{ px: 1, pt: 2 }}>
+          <Slider value={precioSliderValue}
+            onChange={(_, v) => setPrecioMax(String(v))}
+            min={10} max={300} step={10}
+            sx={{
+              color: '#2563eb', height: 4,
+              '& .MuiSlider-thumb': { width: 16, height: 16, bgcolor: 'rgba(26, 34, 50, 0.8)', border: '2px solid #2563eb', '&:hover, &.Mui-focusVisible': { boxShadow: '0 0 0 8px rgba(37, 99, 235, 0.16)' } },
+              '& .MuiSlider-track': { bgcolor: '#2563eb', border: 'none' },
+              '& .MuiSlider-rail': { bgcolor: 'rgba(36, 48, 71, 0.8)' },
+            }}
+          />
+          <Box sx={{ display: 'flex', justifyContent: 'space-between', mt: 2 }}>
+            <Typography sx={{ fontSize: '0.75rem', fontWeight: 500, color: 'rgba(255,255,255,0.7)' }}>€{precioSliderValue}</Typography>
+            <Typography sx={{ fontSize: '0.75rem', fontWeight: 500, color: 'rgba(255,255,255,0.7)' }}>€300+</Typography>
+          </Box>
+        </Box>
       </Box>
 
       {/* Resultados por página */}

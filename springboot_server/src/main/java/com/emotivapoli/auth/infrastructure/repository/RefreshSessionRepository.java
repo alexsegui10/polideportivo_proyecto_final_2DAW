@@ -15,7 +15,7 @@ import java.util.UUID;
 /**
  * Repositorio JPA para RefreshSession.
  *
- * Operaciones de acceso a datos según la arquitectura de la profesora:
+
  *   - findByFamilyId         → rotación + detección de robo
  *   - findByUserIdAndDeviceId → revocar sesión anterior al hacer login
  *   - revokeAllByUserId       → logout global (sessionVersion)

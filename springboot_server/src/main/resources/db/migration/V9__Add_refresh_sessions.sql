@@ -1,5 +1,4 @@
 -- V9: Refresh tokens con rotación, familyId y sessionVersion
--- Basado en la arquitectura de la profesora: one-time use, family-based revocation
 
 -- 1. Añadir session_version a usuarios para logout global
 ALTER TABLE usuarios

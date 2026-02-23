@@ -47,6 +47,8 @@ public class SecurityConfig {
                         .requestMatchers(HttpMethod.POST, "/api/auth/logout").permitAll()
                         .requestMatchers(HttpMethod.GET,  "/api/profile/**").permitAll()
                         .requestMatchers(HttpMethod.GET,  "/api/pistas/**").permitAll()
+                        .requestMatchers(HttpMethod.GET,  "/api/clubs/**").permitAll()
+                        .requestMatchers(HttpMethod.GET,  "/api/clases/**").permitAll()
                         .requestMatchers(HttpMethod.GET,  "/api/health/**").permitAll()
 
                         // ── Solo ADMIN ───────────────────────────────────────────────

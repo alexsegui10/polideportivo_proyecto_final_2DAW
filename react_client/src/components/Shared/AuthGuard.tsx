@@ -32,5 +32,5 @@ export const AuthGuard = () => {
 
   // Si está autenticado, renderizar las rutas hijas con <Outlet />
   // Si NO está autenticado, redirigir al login
-  return isAuth ? <Outlet /> : <Navigate to="/login" replace />;
+  return isAuth ? <Outlet /> : <Navigate to="/auth/login" replace />;
 };

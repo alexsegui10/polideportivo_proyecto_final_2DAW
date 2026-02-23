@@ -1,5 +1,6 @@
 package com.emotivapoli.usuario.presentation.response;
 
+import com.fasterxml.jackson.annotation.JsonProperty;
 import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.util.UUID;
@@ -216,6 +217,7 @@ public class UsuarioResponse {
         this.codigoPostal = codigoPostal;
     }
 
+    @JsonProperty("fechaCreacion")
     public LocalDateTime getCreatedAt() {
         return createdAt;
     }
@@ -224,6 +226,7 @@ public class UsuarioResponse {
         this.createdAt = createdAt;
     }
 
+    @JsonProperty("ultimaActualizacion")
     public LocalDateTime getUpdatedAt() {
         return updatedAt;
     }

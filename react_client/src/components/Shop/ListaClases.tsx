@@ -73,8 +73,6 @@ export const ListaClases = ({ clases, totalElements, sort, setSort }: ListaClase
               }}
             >
               <MenuItem value="default">Por defecto</MenuItem>
-              <MenuItem value="precio_asc">Precio: menor a mayor</MenuItem>
-              <MenuItem value="precio_desc">Precio: mayor a menor</MenuItem>
               <MenuItem value="fecha_asc">Próxima fecha</MenuItem>
             </Select>
           </FormControl>
@@ -138,13 +136,14 @@ export const ListaClases = ({ clases, totalElements, sort, setSort }: ListaClase
                   </Typography>
                 </Box>
 
-                {/* Footer precio + botón */}
+                {/* Footer gratis + botón */}
                 <Box sx={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', pt: 2, borderTop: '1px solid rgba(255,255,255,0.06)' }}>
-                  <Box>
-                    <Typography sx={{ fontSize: '1.25rem', fontWeight: 700, color: 'white', lineHeight: 1 }}>
-                      €{Number(clase.precio).toFixed(2)}
-                    </Typography>
-                    <Typography sx={{ fontSize: '0.7rem', color: 'rgba(255,255,255,0.4)' }}>por clase</Typography>
+                  <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
+                    <Chip label="GRATIS" size="small" sx={{
+                      bgcolor: 'rgba(34,197,94,0.15)', color: '#22c55e',
+                      border: '1px solid rgba(34,197,94,0.3)',
+                      fontWeight: 800, fontSize: '0.7rem', letterSpacing: '0.05em',
+                    }} />
                   </Box>
                   <Button size="small" variant="contained"
                     sx={{ bgcolor: '#2563eb', borderRadius: 2, textTransform: 'none', fontWeight: 600, fontSize: '0.8rem', px: 2, '&:hover': { bgcolor: '#1d4ed8' } }}>
