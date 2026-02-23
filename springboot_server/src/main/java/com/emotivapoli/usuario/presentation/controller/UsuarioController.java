@@ -3,10 +3,13 @@ package com.emotivapoli.usuario.presentation.controller;
 import com.emotivapoli.usuario.application.service.UsuarioService;
 import com.emotivapoli.usuario.domain.dto.UsuarioDTO;
 import com.emotivapoli.usuario.infrastructure.mapper.UsuarioMapper;
-import com.emotivapoli.usuario.presentation.schemas.request.UsuarioCreateRequest;
-import com.emotivapoli.usuario.presentation.schemas.request.UsuarioUpdateRequest;
-import com.emotivapoli.usuario.presentation.schemas.response.UsuarioResponse;
+import com.emotivapoli.usuario.presentation.request.UsuarioCreateRequest;
+import com.emotivapoli.usuario.presentation.request.UsuarioUpdateRequest;
+import com.emotivapoli.usuario.presentation.response.UsuarioResponse;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.security.access.AccessDeniedException;
+import org.springframework.security.core.Authentication;
+import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.stereotype.Component;
 
 import java.util.List;
@@ -52,6 +55,19 @@ public class UsuarioController {
     }
 
     /**
+     * Obtener usuario autenticado actual (desde JWT)
+     */
+    public UsuarioResponse getCurrentUser() {
+        // Obtener email del usuario autenticado desde SecurityContext
+        Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
+        String email = authentication.getName(); // getName() devuelve el "principal" (email en nuestro caso)
+        
+        // Buscar usuario por email
+        UsuarioDTO usuarioDTO = usuarioService.getUsuarioByEmail(email);
+        return usuarioMapper.toResponse(usuarioDTO);
+    }
+
+    /**
      * Obtener usuarios por role
      */
     public List<UsuarioResponse> getUsuariosByRole(String role) {
@@ -76,9 +92,6 @@ public class UsuarioController {
      * Actualizar usuario
      */
     public UsuarioResponse updateUsuario(Long id, UsuarioUpdateRequest request) {
-        // Obtener usuario existente
-        UsuarioDTO usuarioDTO = usuarioService.getUsuarioById(id);
-        
         // Crear DTO con cambios del request
         UsuarioDTO updateDTO = new UsuarioDTO();
         updateDTO.setNombre(request.getNombre());
@@ -104,11 +117,33 @@ public class UsuarioController {
 
     /**
      * Actualizar usuario por slug
+     * Seguridad doble capa:
+     *   1. SecurityConfig requiere token válido (authenticated)
+     *   2. Aquí verificamos que el token pertenece al dueño del perfil o a un ADMIN
      */
     public UsuarioResponse updateUsuarioBySlug(String slug, UsuarioUpdateRequest request) {
-        // Obtener ID desde slug
-        UsuarioDTO usuarioDTO = usuarioService.getUsuarioBySlug(slug);
-        return updateUsuario(usuarioDTO.getId(), request);
+        Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
+        String currentEmail = authentication.getName();
+        boolean isAdmin = authentication.getAuthorities().stream()
+                .anyMatch(a -> a.getAuthority().equals("ROLE_ADMIN"));
+
+        // Resolver el usuario objetivo
+        UsuarioDTO targetUser = usuarioService.getUsuarioBySlug(slug);
+
+        if (!isAdmin) {
+            // Verificar que el autenticado es el dueño del perfil
+            UsuarioDTO currentUser = usuarioService.getUsuarioByEmail(currentEmail);
+            if (!currentUser.getSlug().equals(slug)) {
+                throw new AccessDeniedException("No tienes permiso para modificar este perfil");
+            }
+
+            // Prevenir escalada de privilegios: ignorar campos sensibles si no es admin
+            request.setRole(null);
+            request.setStatus(null);
+            request.setIsActive(null);
+        }
+
+        return updateUsuario(targetUser.getId(), request);
     }
 
     /**

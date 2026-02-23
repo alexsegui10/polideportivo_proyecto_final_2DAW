@@ -1,6 +1,6 @@
 import { createContext, useState, useEffect, ReactNode } from 'react';
-import { Club, ClubCreateRequest, ClubUpdateRequest, Stats } from '../types';
-import { getClubs, getClubsStats } from '../services/queries/clubsQueries';
+import { Club, ClubCreateRequest, ClubUpdateRequest, ClubSearchParams, ClubSearchResponse, Stats } from '../types';
+import { getClubs, getClubsStats, searchClubs as searchClubsService } from '../services/queries/clubsQueries';
 import { 
   createClub as createClubService, 
   updateClub as updateClubService, 
@@ -15,6 +15,7 @@ interface ClubsContextType {
   createClub: (club: ClubCreateRequest) => Promise<Club>;
   updateClub: (slug: string, club: ClubUpdateRequest) => Promise<Club>;
   deleteClub: (slug: string) => Promise<void>;
+  searchClubs: (params: ClubSearchParams) => Promise<ClubSearchResponse>;
   getStats: () => Promise<Stats>;
   getClubs: () => Promise<Club[]>;
 }
@@ -104,6 +105,17 @@ export const ClubsProvider = ({ children }: ClubsProviderProps) => {
     }
   };
 
+  const handleSearchClubs = async (params: ClubSearchParams): Promise<ClubSearchResponse> => {
+    try {
+      setError(null);
+      return await searchClubsService(params);
+    } catch (err) {
+      const errorMsg = err instanceof Error ? err.message : 'Error al buscar clubs';
+      setError(errorMsg);
+      throw err;
+    }
+  };
+
   return (
     <ClubsContext.Provider value={{ 
       clubs, 
@@ -113,6 +125,7 @@ export const ClubsProvider = ({ children }: ClubsProviderProps) => {
       createClub, 
       updateClub, 
       deleteClub,
+      searchClubs: handleSearchClubs,
       getStats: handleGetStats,
       getClubs: handleGetClubs
     }}>

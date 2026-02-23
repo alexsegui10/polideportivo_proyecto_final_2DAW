@@ -7,9 +7,15 @@ import com.emotivapoli.club.presentation.schemas.request.ClubCreateRequest;
 import com.emotivapoli.club.presentation.schemas.request.ClubUpdateRequest;
 import com.emotivapoli.club.presentation.schemas.response.ClubResponse;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.data.domain.Page;
+import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Component;
+import org.springframework.web.bind.annotation.RequestParam;
 
+import java.math.BigDecimal;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 import java.util.stream.Collectors;
 
 @Component
@@ -65,5 +71,38 @@ public class ClubController {
     public void deleteClubBySlug(String slug) {
         ClubDTO existing = clubService.getClubBySlug(slug);
         clubService.deleteClub(existing.getId());
+    }
+
+    // Búsqueda con filtros y paginación
+    public ResponseEntity<Map<String, Object>> searchClubs(
+            @RequestParam(required = false) String q,
+            @RequestParam(required = false) String deporte,
+            @RequestParam(required = false) String nivel,
+            @RequestParam(required = false) BigDecimal precioMax,
+            @RequestParam(defaultValue = "1") int page,
+            @RequestParam(defaultValue = "12") int limit,
+            @RequestParam(defaultValue = "default") String sort) {
+
+        int pageNumber = Math.max(0, page - 1);
+        int validLimit = Math.min(Math.max(1, limit), 100);
+
+        Page<ClubDTO> clubsPage = clubService.searchClubs(q, deporte, nivel, precioMax, pageNumber, validLimit, sort);
+
+        List<ClubResponse> content = clubsPage.getContent().stream()
+                .map(clubMapper::toResponse)
+                .collect(Collectors.toList());
+
+        Map<String, Object> response = new HashMap<>();
+        response.put("content", content);
+        response.put("totalElements", clubsPage.getTotalElements());
+        response.put("totalPages", clubsPage.getTotalPages());
+        response.put("size", clubsPage.getSize());
+        response.put("number", clubsPage.getNumber() + 1);
+        response.put("numberOfElements", clubsPage.getNumberOfElements());
+        response.put("first", clubsPage.isFirst());
+        response.put("last", clubsPage.isLast());
+        response.put("empty", clubsPage.isEmpty());
+
+        return ResponseEntity.ok(response);
     }
 }

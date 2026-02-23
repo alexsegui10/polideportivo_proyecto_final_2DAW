@@ -14,30 +14,30 @@ export interface WaitlistCreateRequest {
 }
 
 export const inscribirUsuario = async (data: InscripcionCreateRequest): Promise<ClaseInscripcion> => {
-  const response = await api.post<ClaseInscripcion>('/api/clase-inscripciones', data);
+  const response = await api.post<ClaseInscripcion>('/clase-inscripciones', data);
   return response.data;
 };
 
 export const cancelarInscripcion = async (uid: string, cancelReason?: string): Promise<void> => {
   const params = cancelReason ? { cancelReason } : {};
-  await api.patch(`/api/clase-inscripciones/${uid}/cancelar`, null, { params });
+  await api.patch(`/clase-inscripciones/${uid}/cancelar`, null, { params });
 };
 
 export const eliminarInscripcion = async (uid: string): Promise<void> => {
-  await api.delete(`/api/clase-inscripciones/${uid}`);
+  await api.delete(`/clase-inscripciones/${uid}`);
 };
 
 export const marcarAsistencia = async (uid: string, asistio: boolean): Promise<void> => {
-  await api.patch(`/api/clase-inscripciones/${uid}/asistencia`, null, {
+  await api.patch(`/clase-inscripciones/${uid}/asistencia`, null, {
     params: { asistio }
   });
 };
 
 export const agregarAWaitlist = async (data: WaitlistCreateRequest): Promise<ClaseWaitlist> => {
-  const response = await api.post<ClaseWaitlist>('/api/clase-waitlist', data);
+  const response = await api.post<ClaseWaitlist>('/clase-waitlist', data);
   return response.data;
 };
 
 export const quitarDeWaitlist = async (uid: string): Promise<void> => {
-  await api.delete(`/api/clase-waitlist/${uid}`);
+  await api.delete(`/clase-waitlist/${uid}`);
 };

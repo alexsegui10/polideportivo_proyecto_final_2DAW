@@ -5,7 +5,7 @@ import { Usuario } from '../../types';
  * Obtener todos los usuarios
  */
 export const getUsuarios = async (): Promise<Usuario[]> => {
-  const response = await api.get('/api/usuarios');
+  const response = await api.get('/usuarios');
   return response.data;
 };
 
@@ -13,7 +13,7 @@ export const getUsuarios = async (): Promise<Usuario[]> => {
  * Obtener usuario por slug
  */
 export const getUsuarioBySlug = async (slug: string): Promise<Usuario> => {
-  const response = await api.get(`/api/usuarios/${slug}`);
+  const response = await api.get(`/usuarios/${slug}`);
   return response.data;
 };
 
@@ -21,6 +21,6 @@ export const getUsuarioBySlug = async (slug: string): Promise<Usuario> => {
  * Obtener usuarios por role
  */
 export const getUsuariosByRole = async (role: string): Promise<Usuario[]> => {
-  const response = await api.get(`/api/usuarios/role/${role}`);
+  const response = await api.get(`/usuarios/role/${role}`);
   return response.data;
 };

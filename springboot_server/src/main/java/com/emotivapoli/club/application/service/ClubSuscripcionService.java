@@ -165,18 +165,15 @@ public class ClubSuscripcionService {
                 .orElseThrow(() -> new RuntimeException("Suscripción no encontrada"));
 
         // Buscar el pago
-        com.emotivapoli.pago.domain.entity.Pago pago = null;
-        if (pagoId != null) {
-            // Aquí deberías inyectar PagoRepository para buscar el pago
-            // Por simplicidad, lo dejamos así por ahora
-        }
+        // TODO: Inyectar PagoRepository para buscar el pago cuando se implemente
+        // com.emotivapoli.pago.domain.entity.Pago pago = pagoRepository.findById(pagoId).orElse(null);
+        // if (pago != null) {
+        //     suscripcion.setUltimoPago(pago);
+        // }
 
         suscripcion.setStatus("activa");
         suscripcion.setProximoCobro(suscripcion.getProximoCobro().plusMonths(1));
         suscripcion.setIntentosCobro(0);
-        if (pago != null) {
-            suscripcion.setUltimoPago(pago);
-        }
         suscripcion.setUpdatedAt(LocalDateTime.now());
 
         clubSuscripcionRepository.save(suscripcion);

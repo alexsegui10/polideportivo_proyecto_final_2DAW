@@ -1,7 +1,8 @@
 import { AppBar, Toolbar, Typography, Button, Box, Container, IconButton, Avatar, Menu, MenuItem, Tooltip, ThemeProvider, createTheme } from '@mui/material'
-import { Link as RouterLink } from 'react-router-dom'
+import { Link as RouterLink, useNavigate } from 'react-router-dom'
 import SportsIcon from '@mui/icons-material/Sports'
 import { useState } from 'react'
+import { useAuth, useAuthMutations } from '../../hooks'
 
 const darkTheme = createTheme({
   palette: {
@@ -12,6 +13,9 @@ const darkTheme = createTheme({
 });
 
 export const Header = () => {
+  const navigate = useNavigate();
+  const { user, isAuth, isAdmin } = useAuth();
+  const { logout } = useAuthMutations();
   const [anchorElUser, setAnchorElUser] = useState<null | HTMLElement>(null);
 
   const handleOpenUserMenu = (event: React.MouseEvent<HTMLElement>) => {
@@ -20,6 +24,22 @@ export const Header = () => {
 
   const handleCloseUserMenu = () => {
     setAnchorElUser(null);
+  };
+
+  const handleLogout = () => {
+    handleCloseUserMenu();
+    logout();
+    navigate('/');
+  };
+
+  const handleLogin = () => {
+    navigate('/login');
+  };
+
+  // Iniciales del nombre para el avatar
+  const getInitials = () => {
+    if (!user) return 'U';
+    return `${user.nombre[0]}${user.apellidos[0]}`.toUpperCase();
   };
 
   return (
@@ -95,46 +115,102 @@ export const Header = () => {
             >
               Clases
             </Button>
+            
+            {/* Botón Dashboard solo para admins */}
+            {isAdmin && (
+              <Button
+                component={RouterLink}
+                to="/dashboard"
+                sx={{ 
+                  color: '#067ff9', 
+                  textTransform: 'none', 
+                  fontSize: '0.95rem', 
+                  fontWeight: 700,
+                  border: '1px solid #067ff9',
+                  '&:hover': {
+                    backgroundColor: 'rgba(6, 127, 249, 0.1)',
+                  }
+                }}
+              >
+                Dashboard
+              </Button>
+            )}
           </Box>
 
+          {/* Usuario autenticado o Login */}
           <Box sx={{ flexGrow: 0 }}>
-            <Tooltip title="Abrir ajustes">
-              <IconButton onClick={handleOpenUserMenu} sx={{ p: 0 }}>
-                <Avatar alt="Usuario" sx={{ bgcolor: 'secondary.main' }}>U</Avatar>
-              </IconButton>
-            </Tooltip>
-            <Menu
-              sx={{ mt: '45px' }}
-              id="menu-appbar"
-              anchorEl={anchorElUser}
-              anchorOrigin={{
-                vertical: 'top',
-                horizontal: 'right',
-              }}
-              keepMounted
-              transformOrigin={{
-                vertical: 'top',
-                horizontal: 'right',
-              }}
-              open={Boolean(anchorElUser)}
-              onClose={handleCloseUserMenu}
-            >
-              <MenuItem onClick={handleCloseUserMenu} component={RouterLink} to="/reservas">
-                <Typography textAlign="center">Mis Reservas</Typography>
-              </MenuItem>
-              <MenuItem onClick={handleCloseUserMenu} component={RouterLink} to="/cuenta">
-                <Typography textAlign="center">Mi Cuenta</Typography>
-              </MenuItem>
-              <MenuItem onClick={handleCloseUserMenu} component={RouterLink} to="/mis-clases">
-                <Typography textAlign="center">Mis Clases</Typography>
-              </MenuItem>
-              <MenuItem onClick={handleCloseUserMenu} component={RouterLink} to="/mis-clubs">
-                <Typography textAlign="center">Mis Clubs</Typography>
-              </MenuItem>
-              <MenuItem onClick={handleCloseUserMenu}>
-                <Typography textAlign="center">Cerrar Sesión</Typography>
-              </MenuItem>
-            </Menu>
+            {isAuth ? (
+              <>
+                <Tooltip title={`${user?.nombre} ${user?.apellidos}`}>
+                  <IconButton onClick={handleOpenUserMenu} sx={{ p: 0 }}>
+                    <Avatar alt={user?.nombre} sx={{ bgcolor: '#067ff9', fontWeight: 600 }}>
+                      {getInitials()}
+                    </Avatar>
+                  </IconButton>
+                </Tooltip>
+                <Menu
+                  sx={{ mt: '45px' }}
+                  id="menu-appbar"
+                  anchorEl={anchorElUser}
+                  anchorOrigin={{
+                    vertical: 'top',
+                    horizontal: 'right',
+                  }}
+                  keepMounted
+                  transformOrigin={{
+                    vertical: 'top',
+                    horizontal: 'right',
+                  }}
+                  open={Boolean(anchorElUser)}
+                  onClose={handleCloseUserMenu}
+                >
+                  {/* Nombre del usuario */}
+                  <MenuItem disabled>
+                    <Box>
+                      <Typography variant="body2" fontWeight={700}>
+                        {user?.nombre} {user?.apellidos}
+                      </Typography>
+                      <Typography variant="caption" color="text.secondary">
+                        {user?.email}
+                      </Typography>
+                    </Box>
+                  </MenuItem>
+                  
+                  <MenuItem onClick={handleCloseUserMenu} component={RouterLink} to="/reservas">
+                    <Typography textAlign="center">Mis Reservas</Typography>
+                  </MenuItem>
+                  <MenuItem onClick={handleCloseUserMenu} component={RouterLink} to={`/profile/${user?.slug}`}>
+                    <Typography textAlign="center">Mi Perfil</Typography>
+                  </MenuItem>
+                  <MenuItem onClick={handleCloseUserMenu} component={RouterLink} to="/mis-clases">
+                    <Typography textAlign="center">Mis Clases</Typography>
+                  </MenuItem>
+                  <MenuItem onClick={handleCloseUserMenu} component={RouterLink} to="/mis-clubs">
+                    <Typography textAlign="center">Mis Clubs</Typography>
+                  </MenuItem>
+                  
+                  <MenuItem onClick={handleLogout} sx={{ color: 'error.main', fontWeight: 600 }}>
+                    <Typography textAlign="center">Cerrar Sesión</Typography>
+                  </MenuItem>
+                </Menu>
+              </>
+            ) : (
+              <Button
+                onClick={handleLogin}
+                variant="contained"
+                sx={{
+                  background: 'linear-gradient(135deg, #067ff9 0%, #0558b8 100%)',
+                  textTransform: 'none',
+                  fontWeight: 600,
+                  px: 3,
+                  '&:hover': {
+                    background: 'linear-gradient(135deg, #0558b8 0%, #044a9f 100%)',
+                  }
+                }}
+              >
+                Iniciar Sesión
+              </Button>
+            )}
           </Box>
         </Toolbar>
       </Container>

@@ -7,9 +7,15 @@ import com.emotivapoli.clase.presentation.schemas.request.ClaseCreateRequest;
 import com.emotivapoli.clase.presentation.schemas.request.ClaseUpdateRequest;
 import com.emotivapoli.clase.presentation.schemas.response.ClaseResponse;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.data.domain.Page;
+import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Component;
+import org.springframework.web.bind.annotation.RequestParam;
 
+import java.math.BigDecimal;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 import java.util.stream.Collectors;
 
 @Component
@@ -68,5 +74,38 @@ public class ClasePublicaController {
     public void deleteClaseBySlug(String slug) {
         ClasePublicaDTO existing = claseService.getClaseBySlug(slug);
         claseService.deleteClase(existing.getId());
+    }
+
+    // Búsqueda con filtros y paginación
+    public ResponseEntity<Map<String, Object>> searchClases(
+            @RequestParam(required = false) String q,
+            @RequestParam(required = false) String deporte,
+            @RequestParam(required = false) String nivel,
+            @RequestParam(required = false) BigDecimal precioMax,
+            @RequestParam(defaultValue = "1") int page,
+            @RequestParam(defaultValue = "12") int limit,
+            @RequestParam(defaultValue = "default") String sort) {
+
+        int pageNumber = Math.max(0, page - 1);
+        int validLimit = Math.min(Math.max(1, limit), 100);
+
+        Page<ClasePublicaDTO> clasesPage = claseService.searchClases(q, deporte, nivel, precioMax, pageNumber, validLimit, sort);
+
+        List<ClaseResponse> content = clasesPage.getContent().stream()
+                .map(claseMapper::toResponse)
+                .collect(Collectors.toList());
+
+        Map<String, Object> response = new HashMap<>();
+        response.put("content", content);
+        response.put("totalElements", clasesPage.getTotalElements());
+        response.put("totalPages", clasesPage.getTotalPages());
+        response.put("size", clasesPage.getSize());
+        response.put("number", clasesPage.getNumber() + 1);
+        response.put("numberOfElements", clasesPage.getNumberOfElements());
+        response.put("first", clasesPage.isFirst());
+        response.put("last", clasesPage.isLast());
+        response.put("empty", clasesPage.isEmpty());
+
+        return ResponseEntity.ok(response);
     }
 }

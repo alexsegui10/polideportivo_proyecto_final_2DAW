@@ -35,10 +35,17 @@ public class PagoRouter {
         return ResponseEntity.ok(pagoController.getPagoById(id));
     }
 
-    // GET por usuario
+    // GET por usuario (solo admin)
     @GetMapping("/usuario/{usuarioId}")
-    @Operation(summary = "Por usuario")
+    @Operation(summary = "Por usuario (solo admin)")
     public ResponseEntity<List<PagoResponse>> getPagosByUsuario(@PathVariable Long usuarioId) {
         return ResponseEntity.ok(pagoController.getPagosByUsuarioId(usuarioId));
+    }
+
+    // GET mis pagos (usuario autenticado)
+    @GetMapping("/mis-pagos")
+    @Operation(summary = "Obtener mis pagos (usuario autenticado)")
+    public ResponseEntity<List<PagoResponse>> getMisPagos() {
+        return ResponseEntity.ok(pagoController.getMisPagos());
     }
 }

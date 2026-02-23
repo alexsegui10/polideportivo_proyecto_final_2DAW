@@ -38,4 +38,11 @@ public class PagoController {
                 .map(pagoMapper::toResponse)
                 .collect(Collectors.toList());
     }
+
+    // Mis pagos (usuario autenticado)
+    public List<PagoResponse> getMisPagos() {
+        return pagoService.getMisPagos().stream()
+                .map(pagoMapper::toResponse)
+                .collect(Collectors.toList());
+    }
 }

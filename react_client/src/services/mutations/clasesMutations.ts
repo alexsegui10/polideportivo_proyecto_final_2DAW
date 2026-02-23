@@ -5,7 +5,7 @@ import { ClasePublica, ClaseCreateRequest, ClaseUpdateRequest } from '../../type
  * Crear nueva clase
  */
 export const createClase = async (clase: ClaseCreateRequest): Promise<ClasePublica> => {
-  const response = await api.post('/api/clases', clase);
+  const response = await api.post('/clases', clase);
   return response.data;
 };
 
@@ -13,7 +13,7 @@ export const createClase = async (clase: ClaseCreateRequest): Promise<ClasePubli
  * Actualizar clase existente
  */
 export const updateClase = async (slug: string, clase: ClaseUpdateRequest): Promise<ClasePublica> => {
-  const response = await api.put(`/api/clases/${slug}`, clase);
+  const response = await api.put(`/clases/${slug}`, clase);
   return response.data;
 };
 
@@ -21,5 +21,5 @@ export const updateClase = async (slug: string, clase: ClaseUpdateRequest): Prom
  * Eliminar clase (soft delete via PATCH)
  */
 export const deleteClase = async (slug: string): Promise<void> => {
-  await api.patch(`/api/clases/${slug}/soft-delete`);
+  await api.patch(`/clases/${slug}/soft-delete`);
 };

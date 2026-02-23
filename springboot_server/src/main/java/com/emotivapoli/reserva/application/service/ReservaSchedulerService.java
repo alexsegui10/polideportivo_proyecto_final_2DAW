@@ -8,9 +8,6 @@ import org.springframework.scheduling.annotation.Scheduled;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
-import java.math.BigInteger;
-import java.util.List;
-
 /**
  * Servicio para actualizar automáticamente los estados de las reservas.
  * Ejecuta una función PostgreSQL cada 15 minutos que:

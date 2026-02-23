@@ -5,7 +5,7 @@ import { Usuario, UsuarioCreateRequest, UsuarioUpdateRequest } from '../../types
  * Crear nuevo usuario
  */
 export const createUsuario = async (usuario: UsuarioCreateRequest): Promise<Usuario> => {
-  const response = await api.post('/api/usuarios', usuario);
+  const response = await api.post('/usuarios', usuario);
   return response.data;
 };
 
@@ -13,7 +13,7 @@ export const createUsuario = async (usuario: UsuarioCreateRequest): Promise<Usua
  * Actualizar usuario existente
  */
 export const updateUsuario = async (slug: string, usuario: UsuarioUpdateRequest): Promise<Usuario> => {
-  const response = await api.put(`/api/usuarios/${slug}`, usuario);
+  const response = await api.put(`/usuarios/${slug}`, usuario);
   return response.data;
 };
 
@@ -21,5 +21,5 @@ export const updateUsuario = async (slug: string, usuario: UsuarioUpdateRequest)
  * Eliminar usuario (soft delete via PATCH)
  */
 export const deleteUsuario = async (slug: string): Promise<void> => {
-  await api.patch(`/api/usuarios/${slug}/soft-delete`);
+  await api.patch(`/usuarios/${slug}/soft-delete`);
 };

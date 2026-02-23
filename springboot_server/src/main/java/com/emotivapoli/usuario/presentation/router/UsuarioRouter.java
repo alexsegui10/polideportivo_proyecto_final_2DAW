@@ -1,9 +1,9 @@
 package com.emotivapoli.usuario.presentation.router;
 
 import com.emotivapoli.usuario.presentation.controller.UsuarioController;
-import com.emotivapoli.usuario.presentation.schemas.request.UsuarioCreateRequest;
-import com.emotivapoli.usuario.presentation.schemas.request.UsuarioUpdateRequest;
-import com.emotivapoli.usuario.presentation.schemas.response.UsuarioResponse;
+import com.emotivapoli.usuario.presentation.request.UsuarioCreateRequest;
+import com.emotivapoli.usuario.presentation.request.UsuarioUpdateRequest;
+import com.emotivapoli.usuario.presentation.response.UsuarioResponse;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -18,7 +18,6 @@ import java.util.List;
  * Define endpoints REST y delega lógica al Controller
  */
 @RestController
-@RequestMapping("/api/usuarios")
 @Tag(name = "Usuarios", description = "Gestión de usuarios del sistema")
 public class UsuarioRouter {
 
@@ -26,9 +25,20 @@ public class UsuarioRouter {
     private UsuarioController usuarioController;
 
     /**
+     * GET /api/usuario - Obtener usuario autenticado actual
+     * IMPORTANTE: Este endpoint debe ir ANTES de /api/usuarios para no colisionar
+     */
+    @GetMapping("/api/usuario")
+    @Operation(summary = "Obtener información del usuario autenticado")
+    public ResponseEntity<UsuarioResponse> getCurrentUser() {
+        UsuarioResponse usuario = usuarioController.getCurrentUser();
+        return ResponseEntity.ok(usuario);
+    }
+
+    /**
      * GET /api/usuarios - Obtener todos los usuarios
      */
-    @GetMapping
+    @GetMapping("/api/usuarios")
     @Operation(summary = "Obtener todos los usuarios")
     public ResponseEntity<List<UsuarioResponse>> getAllUsuarios() {
         List<UsuarioResponse> usuarios = usuarioController.getAllUsuarios();
@@ -38,7 +48,7 @@ public class UsuarioRouter {
     /**
      * GET /api/usuarios/{slug} - Obtener usuario por slug
      */
-    @GetMapping("/{slug}")
+    @GetMapping("/api/usuarios/{slug}")
     @Operation(summary = "Obtener usuario por slug")
     public ResponseEntity<UsuarioResponse> getUsuario(@PathVariable String slug) {
         UsuarioResponse usuario = usuarioController.getUsuarioBySlug(slug);
@@ -48,7 +58,7 @@ public class UsuarioRouter {
     /**
      * GET /api/usuarios/role/{role} - Obtener usuarios por role
      */
-    @GetMapping("/role/{role}")
+    @GetMapping("/api/usuarios/role/{role}")
     @Operation(summary = "Obtener usuarios por role (admin, cliente, entrenador)")
     public ResponseEntity<List<UsuarioResponse>> getUsuariosByRole(@PathVariable String role) {
         List<UsuarioResponse> usuarios = usuarioController.getUsuariosByRole(role);
@@ -58,7 +68,7 @@ public class UsuarioRouter {
     /**
      * POST /api/usuarios - Crear nuevo usuario
      */
-    @PostMapping
+    @PostMapping("/api/usuarios")
     @Operation(summary = "Crear nuevo usuario")
     public ResponseEntity<UsuarioResponse> createUsuario(@RequestBody UsuarioCreateRequest request) {
         UsuarioResponse nuevoUsuario = usuarioController.createUsuario(request);
@@ -68,7 +78,7 @@ public class UsuarioRouter {
     /**
      * PUT /api/usuarios/{slug} - Actualizar usuario
      */
-    @PutMapping("/{slug}")
+    @PutMapping("/api/usuarios/{slug}")
     @Operation(summary = "Actualizar usuario existente")
     public ResponseEntity<UsuarioResponse> updateUsuario(
             @PathVariable String slug,
@@ -80,7 +90,7 @@ public class UsuarioRouter {
     /**
      * PATCH /api/usuarios/{slug}/soft-delete - Eliminar usuario (soft delete)
      */
-    @PatchMapping("/{slug}/soft-delete")
+    @PatchMapping("/api/usuarios/{slug}/soft-delete")
     @Operation(summary = "Eliminar usuario mediante soft delete (marca como eliminado sin borrar físicamente)")
     public ResponseEntity<Void> softDeleteUsuario(@PathVariable String slug) {
         usuarioController.deleteUsuarioBySlug(slug);

@@ -1,6 +1,6 @@
 import { createContext, useState, useEffect, ReactNode } from 'react';
-import { ClasePublica, ClaseCreateRequest, ClaseUpdateRequest, Stats } from '../types';
-import { getClases, getClasesStats, getClasesPorFecha } from '../services/queries/clasesQueries';
+import { ClasePublica, ClaseCreateRequest, ClaseUpdateRequest, ClaseSearchParams, ClaseSearchResponse, Stats } from '../types';
+import { getClases, getClasesStats, getClasesPorFecha, searchClases as searchClasesService } from '../services/queries/clasesQueries';
 import { 
   createClase as createClaseService, 
   updateClase as updateClaseService, 
@@ -15,6 +15,7 @@ interface ClasesContextType {
   createClase: (clase: ClaseCreateRequest) => Promise<ClasePublica>;
   updateClase: (slug: string, clase: ClaseUpdateRequest) => Promise<ClasePublica>;
   deleteClase: (slug: string) => Promise<void>;
+  searchClases: (params: ClaseSearchParams) => Promise<ClaseSearchResponse>;
   getStats: () => Promise<Stats>;
   getClasesPorFecha: (fecha: 'hoy' | 'mañana') => Promise<ClasePublica[]>;
 }
@@ -104,6 +105,17 @@ export const ClasesProvider = ({ children }: ClasesProviderProps) => {
     }
   };
 
+  const handleSearchClases = async (params: ClaseSearchParams): Promise<ClaseSearchResponse> => {
+    try {
+      setError(null);
+      return await searchClasesService(params);
+    } catch (err) {
+      const errorMsg = err instanceof Error ? err.message : 'Error al buscar clases';
+      setError(errorMsg);
+      throw err;
+    }
+  };
+
   return (
     <ClasesContext.Provider value={{ 
       clases, 
@@ -113,6 +125,7 @@ export const ClasesProvider = ({ children }: ClasesProviderProps) => {
       createClase, 
       updateClase, 
       deleteClase,
+      searchClases: handleSearchClases,
       getStats: handleGetStats,
       getClasesPorFecha: handleGetClasesPorFecha
     }}>

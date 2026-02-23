@@ -8,9 +8,14 @@ import com.emotivapoli.usuario.domain.entity.Usuario;
 import com.emotivapoli.usuario.infrastructure.repository.UsuarioRepository;
 import com.emotivapoli.utils.SlugUtils;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.PageRequest;
+import org.springframework.data.domain.Pageable;
+import org.springframework.data.domain.Sort;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
+import java.math.BigDecimal;
 import java.time.LocalDateTime;
 import java.util.List;
 import java.util.UUID;
@@ -119,5 +124,24 @@ public class ClubService {
         club.setUpdatedAt(LocalDateTime.now());
         
         clubRepository.save(club);
+    }
+
+    /**
+     * Búsqueda y filtrado de clubs con paginación
+     */
+    public Page<ClubDTO> searchClubs(String q, String deporte, String nivel,
+                                      BigDecimal precioMax, int page, int limit, String sort) {
+        Sort sortBy;
+        if ("precio_asc".equalsIgnoreCase(sort)) {
+            sortBy = Sort.by(Sort.Direction.ASC, "precioMensual");
+        } else if ("precio_desc".equalsIgnoreCase(sort)) {
+            sortBy = Sort.by(Sort.Direction.DESC, "precioMensual");
+        } else {
+            sortBy = Sort.by(Sort.Direction.ASC, "id");
+        }
+
+        Pageable pageable = PageRequest.of(page, limit, sortBy);
+        Page<Club> clubsPage = clubRepository.searchClubs(q, deporte, nivel, precioMax, pageable);
+        return clubsPage.map(clubMapper::toDTO);
     }
 }

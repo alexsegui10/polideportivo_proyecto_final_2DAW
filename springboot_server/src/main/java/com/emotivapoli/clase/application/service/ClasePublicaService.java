@@ -12,9 +12,14 @@ import com.emotivapoli.usuario.domain.entity.Usuario;
 import com.emotivapoli.usuario.infrastructure.repository.UsuarioRepository;
 import com.emotivapoli.utils.SlugUtils;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.PageRequest;
+import org.springframework.data.domain.Pageable;
+import org.springframework.data.domain.Sort;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
+import java.math.BigDecimal;
 import java.time.LocalDateTime;
 import java.util.List;
 import java.util.UUID;
@@ -190,5 +195,26 @@ public class ClasePublicaService {
         clase.setUpdatedAt(LocalDateTime.now());
 
         claseRepository.save(clase);
+    }
+
+    /**
+     * Búsqueda y filtrado de clases con paginación
+     */
+    public Page<ClasePublicaDTO> searchClases(String q, String deporte, String nivel,
+                                               BigDecimal precioMax, int page, int limit, String sort) {
+        Sort sortBy;
+        if ("precio_asc".equalsIgnoreCase(sort)) {
+            sortBy = Sort.by(Sort.Direction.ASC, "precio");
+        } else if ("precio_desc".equalsIgnoreCase(sort)) {
+            sortBy = Sort.by(Sort.Direction.DESC, "precio");
+        } else if ("fecha_asc".equalsIgnoreCase(sort)) {
+            sortBy = Sort.by(Sort.Direction.ASC, "fechaHoraInicio");
+        } else {
+            sortBy = Sort.by(Sort.Direction.ASC, "id");
+        }
+
+        Pageable pageable = PageRequest.of(page, limit, sortBy);
+        Page<ClasePublica> clasesPage = claseRepository.searchClases(q, deporte, nivel, precioMax, pageable);
+        return clasesPage.map(claseMapper::toDTO);
     }
 }

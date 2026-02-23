@@ -7,6 +7,13 @@ export { useAutoUpdateStatus } from './useAutoUpdateStatus'
 export { useUrlState } from './useUrlState'
 export { useDebouncedValue } from './useDebouncedValue'
 
+// Auth
+export { useAuth } from './queries/useAuth'
+export { useAuthMutations } from './mutations/useAuthMutations'
+
+// Profile (público por slug)
+export { useProfile } from './queries/useProfile'
+
 // Pistas
 export { usePistas } from './queries/usePistas'
 export { usePistasMutations } from './mutations/usePistasMutations'
@@ -22,11 +29,13 @@ export { usePagos } from './queries/usePagos'
 // Clubs
 export { useClubs } from './queries/useClubs'
 export { useClubsMutations } from './mutations/useClubsMutations'
+export { useClubsShopQueries } from './queries/useClubsShopQueries'
 
 // Clases
 export { useClases } from './queries/useClases'
 export { useClasesMutations } from './mutations/useClasesMutations'
 export { useClaseInscripcionMutations } from './mutations/useClaseInscripcionMutations'
+export { useClasesShopQueries } from './queries/useClasesShopQueries'
 
 // Clubs
 export { useClubMiembroMutations } from './mutations/useClubMiembroMutations'

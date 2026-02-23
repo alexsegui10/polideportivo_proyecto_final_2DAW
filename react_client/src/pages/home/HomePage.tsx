@@ -1,14 +1,14 @@
 import { useEffect, useState } from 'react';
 import { Box, CircularProgress, ThemeProvider, createTheme } from '@mui/material';
-import { HeroSection } from '../components/Home/HeroSection';
-import { StatsSection } from '../components/Home/StatsSection';
-import { PremierFacilities } from '../components/Home/PremierFacilities';
-import { EliteClasses } from '../components/Home/EliteClasses';
-import { ExclusiveClubs } from '../components/Home/ExclusiveClubs';
-import { usePistasHomeQueries } from '../hooks/queries/usePistasHomeQueries';
-import { useClasesHomeQueries } from '../hooks/queries/useClasesHomeQueries';
-import { useClubsHomeQueries } from '../hooks/queries/useClubsHomeQueries';
-import { Pista, ClasePublica, Club } from '../types';
+import { HeroSection } from '../../components/Home/HeroSection';
+import { StatsSection } from '../../components/Home/StatsSection';
+import { PremierFacilities } from '../../components/Home/PremierFacilities';
+import { EliteClasses } from '../../components/Home/EliteClasses';
+import { ExclusiveClubs } from '../../components/Home/ExclusiveClubs';
+import { usePistasHomeQueries } from '../../hooks/queries/usePistasHomeQueries';
+import { useClasesHomeQueries } from '../../hooks/queries/useClasesHomeQueries';
+import { useClubsHomeQueries } from '../../hooks/queries/useClubsHomeQueries';
+import { Pista, ClasePublica, Club } from '../../types';
 
 // Tema oscuro solo para Home
 const darkTheme = createTheme({

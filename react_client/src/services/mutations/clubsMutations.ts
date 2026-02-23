@@ -5,7 +5,7 @@ import { Club, ClubCreateRequest, ClubUpdateRequest } from '../../types';
  * Crear nuevo club
  */
 export const createClub = async (club: ClubCreateRequest): Promise<Club> => {
-  const response = await api.post('/api/clubs', club);
+  const response = await api.post('/clubs', club);
   return response.data;
 };
 
@@ -13,7 +13,7 @@ export const createClub = async (club: ClubCreateRequest): Promise<Club> => {
  * Actualizar club existente
  */
 export const updateClub = async (slug: string, club: ClubUpdateRequest): Promise<Club> => {
-  const response = await api.put(`/api/clubs/${slug}`, club);
+  const response = await api.put(`/clubs/${slug}`, club);
   return response.data;
 };
 
@@ -21,5 +21,5 @@ export const updateClub = async (slug: string, club: ClubUpdateRequest): Promise
  * Eliminar club (soft delete via PATCH)
  */
 export const deleteClub = async (slug: string): Promise<void> => {
-  await api.patch(`/api/clubs/${slug}/soft-delete`);
+  await api.patch(`/clubs/${slug}/soft-delete`);
 };

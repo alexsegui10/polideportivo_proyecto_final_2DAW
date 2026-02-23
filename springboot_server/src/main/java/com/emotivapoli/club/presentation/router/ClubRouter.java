@@ -11,7 +11,9 @@ import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
+import java.math.BigDecimal;
 import java.util.List;
+import java.util.Map;
 
 /**
  * Router
@@ -29,6 +31,20 @@ public class ClubRouter {
     @Operation(summary = "Listar")
     public ResponseEntity<List<ClubResponse>> getAllClubs() {
         return ResponseEntity.ok(clubController.getAllClubs());
+    }
+
+    // GET search con filtros y paginación
+    @GetMapping("/search")
+    @Operation(summary = "Buscar con filtros y paginación")
+    public ResponseEntity<Map<String, Object>> searchClubs(
+            @RequestParam(required = false) String q,
+            @RequestParam(required = false) String deporte,
+            @RequestParam(required = false) String nivel,
+            @RequestParam(required = false) BigDecimal precioMax,
+            @RequestParam(defaultValue = "1") int page,
+            @RequestParam(defaultValue = "12") int limit,
+            @RequestParam(defaultValue = "default") String sort) {
+        return clubController.searchClubs(q, deporte, nivel, precioMax, page, limit, sort);
     }
 
     // GET por slug

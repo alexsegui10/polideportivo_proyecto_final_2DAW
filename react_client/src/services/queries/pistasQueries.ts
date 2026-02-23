@@ -4,12 +4,12 @@ import { Pista, PistaSearchParams, PistaSearchResponse, Stats } from '../../type
 
 // Dashboard: usa SpringBoot
 export const getPistas = async (): Promise<Pista[]> => {
-  const response = await apiSpring.get<Pista[]>('/api/pistas');
+  const response = await apiSpring.get<Pista[]>('/pistas');
   return response.data;
 };
 
 export const getPistaBySlug = async (slug: string): Promise<Pista> => {
-  const response = await apiSpring.get<Pista>(`/api/pistas/${slug}`);
+  const response = await apiSpring.get<Pista>(`/pistas/${slug}`);
   return response.data;
 };
 
@@ -24,7 +24,7 @@ export const searchPistas = async (params: PistaSearchParams): Promise<PistaSear
   if (params.sort) queryParams.set('sort', params.sort);
 
   // Shop usa SpringBoot
-  const response = await apiSpring.get<PistaSearchResponse>(`/api/pistas/search?${queryParams.toString()}`);
+  const response = await apiSpring.get<PistaSearchResponse>(`/pistas/search?${queryParams.toString()}`);
   return response.data;
 };
 

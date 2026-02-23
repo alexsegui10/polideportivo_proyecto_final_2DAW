@@ -11,6 +11,43 @@ export interface Pista {
   imagen?: string;
 }
 
+// ==================== AUTH TYPES ====================
+
+export interface LoginRequest {
+  email: string;
+  password: string;
+}
+
+export interface RegisterRequest {
+  nombre: string;
+  apellidos: string;
+  email: string;
+  password: string;
+  telefono?: string;
+  dni?: string;
+}
+
+export interface AuthResponse {
+  token: string;
+  usuario: Usuario;
+}
+
+// Perfil público (sin datos sensibles)
+export interface ProfileResponse {
+  slug: string;
+  nombre: string;
+  apellidos: string;
+  avatar?: string;
+  role: string;
+  especialidad?: string;
+  certificaciones?: string[];
+  bio?: string;
+  fechaCreacion: string;
+}
+
+// ==================== END AUTH TYPES ====================
+
+
 // Tipos para Stats del Home
 export interface Stats {
   total: number;
@@ -48,6 +85,54 @@ export interface PistaSearchParams {
   page?: number;
   limit?: number;
   sort?: string;
+}
+
+// Parámetros de búsqueda de clases
+export interface ClaseSearchParams {
+  q?: string;
+  deporte?: string;
+  nivel?: string;
+  precioMax?: number;
+  page?: number;
+  limit?: number;
+  sort?: string;
+}
+
+// Respuesta paginada de búsqueda de clases
+export interface ClaseSearchResponse {
+  content: ClasePublica[];
+  totalElements: number;
+  totalPages: number;
+  size: number;
+  number: number;
+  numberOfElements: number;
+  first: boolean;
+  last: boolean;
+  empty: boolean;
+}
+
+// Parámetros de búsqueda de clubs
+export interface ClubSearchParams {
+  q?: string;
+  deporte?: string;
+  nivel?: string;
+  precioMax?: number;
+  page?: number;
+  limit?: number;
+  sort?: string;
+}
+
+// Respuesta paginada de búsqueda de clubs
+export interface ClubSearchResponse {
+  content: Club[];
+  totalElements: number;
+  totalPages: number;
+  size: number;
+  number: number;
+  numberOfElements: number;
+  first: boolean;
+  last: boolean;
+  empty: boolean;
 }
 
 // Types para Usuarios (completos según backend)

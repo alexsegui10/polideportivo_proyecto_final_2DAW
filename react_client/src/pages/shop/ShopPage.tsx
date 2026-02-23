@@ -1,10 +1,10 @@
 import { useEffect, useState } from 'react';
 import { Box, CircularProgress, ThemeProvider, createTheme } from '@mui/material';
-import { useUrlState, useDebouncedValue, usePistasShopQueries } from '../hooks';
-import { Pista } from '../types';
-import { FiltrosPistas } from '../components/Shop/FiltrosPistas';
-import { ListaPistas } from '../components/Shop/ListaPistas';
-import { PaginacionPistas } from '../components/Shop/PaginacionPistas';
+import { useUrlState, useDebouncedValue, usePistasShopQueries } from '../../hooks';
+import { Pista } from '../../types';
+import { FiltrosPistas } from '../../components/Shop/FiltrosPistas';
+import { ListaPistas } from '../../components/Shop/ListaPistas';
+import { PaginacionPistas } from '../../components/Shop/PaginacionPistas';
 
 const darkTheme = createTheme({
   palette: {

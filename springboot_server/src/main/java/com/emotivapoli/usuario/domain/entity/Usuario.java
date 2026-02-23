@@ -81,6 +81,13 @@ public class Usuario {
     @Column(name = "last_login")
     private LocalDateTime lastLogin;
 
+    /**
+     * Contador global de sesiones.
+     * Al incrementarse, invalida TODOS los refresh tokens del usuario (logout global).
+     */
+    @Column(name = "session_version", nullable = false)
+    private Integer sessionVersion = 0;
+
     // Relaciones One-to-Many
     @OneToMany(mappedBy = "entrenador", cascade = CascadeType.ALL, fetch = FetchType.LAZY)
     private List<com.emotivapoli.club.domain.entity.Club> clubsEntrenados = new ArrayList<>();
@@ -320,5 +327,13 @@ public class Usuario {
 
     public void setListasEspera(List<com.emotivapoli.clase.domain.entity.ClaseWaitlist> listasEspera) {
         this.listasEspera = listasEspera;
+    }
+
+    public Integer getSessionVersion() {
+        return sessionVersion;
+    }
+
+    public void setSessionVersion(Integer sessionVersion) {
+        this.sessionVersion = sessionVersion;
     }
 }

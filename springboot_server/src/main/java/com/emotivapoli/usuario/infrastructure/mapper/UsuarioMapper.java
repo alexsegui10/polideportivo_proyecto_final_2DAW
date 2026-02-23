@@ -2,9 +2,9 @@ package com.emotivapoli.usuario.infrastructure.mapper;
 
 import com.emotivapoli.usuario.domain.dto.UsuarioDTO;
 import com.emotivapoli.usuario.domain.entity.Usuario;
-import com.emotivapoli.usuario.presentation.schemas.request.UsuarioCreateRequest;
-import com.emotivapoli.usuario.presentation.schemas.request.UsuarioUpdateRequest;
-import com.emotivapoli.usuario.presentation.schemas.response.UsuarioResponse;
+import com.emotivapoli.usuario.presentation.request.UsuarioCreateRequest;
+import com.emotivapoli.usuario.presentation.request.UsuarioUpdateRequest;
+import com.emotivapoli.usuario.presentation.response.UsuarioResponse;
 import org.springframework.stereotype.Component;
 
 @Component
@@ -110,6 +110,40 @@ public class UsuarioMapper {
             dto.getCreatedAt(),
             dto.getUpdatedAt(),
             dto.getLastLogin()
+        );
+    }
+
+    /**
+     * Convierte Entity a Response (sobrecarga)
+     */
+    public UsuarioResponse toResponse(Usuario entity) {
+        if (entity == null) {
+            return null;
+        }
+
+        return new UsuarioResponse(
+            entity.getId(),
+            entity.getUid(),
+            entity.getSlug(),
+            entity.getNombre(),
+            entity.getApellidos(),
+            entity.getEmail(),
+            entity.getTelefono(),
+            entity.getDni(),
+            entity.getFechaNacimiento(),
+            entity.getAvatar(),
+            entity.getRole(),
+            entity.getStatus(),
+            entity.getIsActive(),
+            entity.getEspecialidad(),
+            entity.getCertificaciones(),
+            entity.getBio(),
+            entity.getDireccion(),
+            entity.getCiudad(),
+            entity.getCodigoPostal(),
+            entity.getCreatedAt(),
+            entity.getUpdatedAt(),
+            entity.getLastLogin()
         );
     }
 
