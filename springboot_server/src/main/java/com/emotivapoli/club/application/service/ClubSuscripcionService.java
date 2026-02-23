@@ -35,7 +35,6 @@ public class ClubSuscripcionService {
      */
     @Transactional
     public ClubSuscripcionDTO crearSuscripcion(UUID miembroUid, BigDecimal precioMensual) {
-        // Validar miembro existe y está activo
         ClubMiembro miembro = clubMiembroRepository.findByUid(miembroUid)
                 .orElseThrow(() -> new RuntimeException("Miembro no encontrado con UID: " + miembroUid));
 
@@ -43,19 +42,16 @@ public class ClubSuscripcionService {
             throw new RuntimeException("El miembro debe estar activo para crear una suscripción");
         }
 
-        // Validar que no tenga suscripción activa
         clubSuscripcionRepository.findActivaByMiembroId(miembro.getId())
                 .ifPresent(s -> {
                     throw new RuntimeException("El miembro ya tiene una suscripción activa");
                 });
 
-        // Usar precio del club si no se proporciona
         BigDecimal precio = precioMensual != null ? precioMensual : miembro.getClub().getPrecioMensual();
         if (precio == null) {
             throw new RuntimeException("Debe proporcionar un precio mensual");
         }
 
-        // Crear suscripción
         ClubSuscripcion suscripcion = new ClubSuscripcion();
         suscripcion.setUid(UUID.randomUUID());
         suscripcion.setClubMiembro(miembro);
@@ -72,18 +68,12 @@ public class ClubSuscripcionService {
         return clubSuscripcionMapper.toDTO(saved);
     }
 
-    /**
-     * Obtener suscripción por UID
-     */
     public ClubSuscripcionDTO getSuscripcionByUid(UUID uid) {
         ClubSuscripcion suscripcion = clubSuscripcionRepository.findByUid(uid)
                 .orElseThrow(() -> new RuntimeException("Suscripción no encontrada con UID: " + uid));
         return clubSuscripcionMapper.toDTO(suscripcion);
     }
 
-    /**
-     * Listar suscripciones de un miembro
-     */
     public List<ClubSuscripcionDTO> getSuscripcionesByMiembroUid(UUID miembroUid) {
         ClubMiembro miembro = clubMiembroRepository.findByUid(miembroUid)
                 .orElseThrow(() -> new RuntimeException("Miembro no encontrado"));
@@ -93,18 +83,12 @@ public class ClubSuscripcionService {
                 .collect(Collectors.toList());
     }
 
-    /**
-     * Listar todas las suscripciones de un club
-     */
     public List<ClubSuscripcionDTO> getSuscripcionesByClubId(Long clubId) {
         return clubSuscripcionRepository.findByClubId(clubId).stream()
                 .map(clubSuscripcionMapper::toDTO)
                 .collect(Collectors.toList());
     }
 
-    /**
-     * Cancelar suscripción
-     */
     @Transactional
     public void cancelarSuscripcion(UUID uid) {
         ClubSuscripcion suscripcion = clubSuscripcionRepository.findByUid(uid)
@@ -118,9 +102,6 @@ public class ClubSuscripcionService {
         clubSuscripcionRepository.save(suscripcion);
     }
 
-    /**
-     * Pausar suscripción
-     */
     @Transactional
     public void pausarSuscripcion(UUID uid) {
         ClubSuscripcion suscripcion = clubSuscripcionRepository.findByUid(uid)
@@ -136,9 +117,6 @@ public class ClubSuscripcionService {
         clubSuscripcionRepository.save(suscripcion);
     }
 
-    /**
-     * Reanudar suscripción pausada
-     */
     @Transactional
     public void reanudarSuscripcion(UUID uid) {
         ClubSuscripcion suscripcion = clubSuscripcionRepository.findByUid(uid)
@@ -164,13 +142,6 @@ public class ClubSuscripcionService {
         ClubSuscripcion suscripcion = clubSuscripcionRepository.findByUid(uid)
                 .orElseThrow(() -> new RuntimeException("Suscripción no encontrada"));
 
-        // Buscar el pago
-        // TODO: Inyectar PagoRepository para buscar el pago cuando se implemente
-        // com.emotivapoli.pago.domain.entity.Pago pago = pagoRepository.findById(pagoId).orElse(null);
-        // if (pago != null) {
-        //     suscripcion.setUltimoPago(pago);
-        // }
-
         suscripcion.setStatus("activa");
         suscripcion.setProximoCobro(suscripcion.getProximoCobro().plusMonths(1));
         suscripcion.setIntentosCobro(0);
@@ -192,7 +163,6 @@ public class ClubSuscripcionService {
 
         if (suscripcion.getIntentosCobro() >= 3) {
             suscripcion.setStatus("impago");
-            // Podríamos también dar de baja al miembro automáticamente
         } else {
             suscripcion.setStatus("impago");
         }
@@ -201,28 +171,18 @@ public class ClubSuscripcionService {
         clubSuscripcionRepository.save(suscripcion);
     }
 
-    /**
-     * Obtener suscripciones pendientes de cobro
-     * Para procesar cobros mensuales
-     */
     public List<ClubSuscripcionDTO> getSuscripcionesPendientesCobro(LocalDate fecha) {
         return clubSuscripcionRepository.findPendientesCobro(fecha).stream()
                 .map(clubSuscripcionMapper::toDTO)
                 .collect(Collectors.toList());
     }
 
-    /**
-     * Obtener suscripciones con impago para reintentar
-     */
     public List<ClubSuscripcionDTO> getSuscripcionesImpagosRetryables() {
         return clubSuscripcionRepository.findImpagosRetryables().stream()
                 .map(clubSuscripcionMapper::toDTO)
                 .collect(Collectors.toList());
     }
 
-    /**
-     * Listar todas las suscripciones activas
-     */
     public List<ClubSuscripcionDTO> getAllSuscripcionesActivas() {
         return clubSuscripcionRepository.findActivas().stream()
                 .map(clubSuscripcionMapper::toDTO)

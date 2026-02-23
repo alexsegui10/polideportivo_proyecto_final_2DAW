@@ -79,8 +79,6 @@ public class RefreshTokenService {
 
     /**
      * Valida el refresh token y devuelve un nuevo par [accessToken, refreshToken].
-     *
-     * Flujo (2_expires.txt + 1_refresh_jwt.txt):
      *   1. Verificar firma/expiración del JWT
      *   2. Buscar sesión por familyId
      *   3. Si revoked → familia ya comprometida → 401

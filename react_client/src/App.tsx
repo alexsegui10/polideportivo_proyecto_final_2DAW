@@ -23,7 +23,6 @@ const PistasPage = lazy(() => import('./pages/admin/PistasPage'))
 const UsuariosPage = lazy(() => import('./pages/admin/UsuariosPage'))
 const ReservasPage = lazy(() => import('./pages/admin/ReservasPage'))
 const ClubsPage = lazy(() => import('./pages/admin/ClubsPage'))
-const ClasesPage = lazy(() => import('./pages/admin/ClasesPage'))
 const PagosPage = lazy(() => import('./pages/admin/PagosPage'))
 const NotFoundPage = lazy(() => import('./pages/notfound/NotFoundPage'))
 const ShopPage = lazy(() => import('./pages/shop/ShopPage'))
@@ -153,20 +152,6 @@ function App() {
                         </ClubMiembroProvider>
                       </ClubsProvider>
                     </UsuariosProvider>
-                  </DashboardLayout>
-                } />
-
-                <Route path="/dashboard/clases" element={
-                  <DashboardLayout>
-                    <PistasProvider>
-                      <UsuariosProvider>
-                        <ClasesProvider>
-                          <ClaseInscripcionProvider>
-                            <ClasesPage />
-                          </ClaseInscripcionProvider>
-                        </ClasesProvider>
-                      </UsuariosProvider>
-                    </PistasProvider>
                   </DashboardLayout>
                 } />
 

@@ -5,7 +5,6 @@ import {
   CalendarToday as CalendarIcon,
   Group as GroupIcon,
   Groups as ClubsIcon,
-  FitnessCenter as ClasesIcon,
   Payment as PagosIcon,
   Settings as SettingsIcon 
 } from '@mui/icons-material';
@@ -21,7 +20,6 @@ export const Sidebar = () => {
     { text: 'Usuarios', icon: <GroupIcon />, path: '/dashboard/usuarios' },
     { text: 'Reservas', icon: <CalendarIcon />, path: '/dashboard/reservas' },
     { text: 'Clubs', icon: <ClubsIcon />, path: '/dashboard/clubs' },
-    { text: 'Clases', icon: <ClasesIcon />, path: '/dashboard/clases' },
     { text: 'Pagos', icon: <PagosIcon />, path: '/dashboard/pagos' },
     { text: 'Ajustes', icon: <SettingsIcon />, path: '/ajustes' },
   ];

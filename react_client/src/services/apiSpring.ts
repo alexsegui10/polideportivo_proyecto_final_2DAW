@@ -1,7 +1,7 @@
 import axios from 'axios';
 import { JwtService } from './JwtService';
 
-// Canal compartido entre pestañas (doc profesora 4_BroadcastChannel.txt)
+
 export const authChannel = new BroadcastChannel('auth');
 
 // Instancia principal — todas las peticiones autenticadas

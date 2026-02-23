@@ -18,6 +18,6 @@ CREATE TABLE IF NOT EXISTS jwt_blacklist (
 );
 
 -- Índice para búsquedas rápidas en cada request
-CREATE INDEX IF NOT EXISTS idx_jwt_blacklist_hash       ON jwt_blacklist(token_hash);
+CREATE INDEX IF NOT EXISTS idx_jwt_blacklist_hash ON jwt_blacklist(token_hash);
 -- Índice para limpiar entradas expiradas
 CREATE INDEX IF NOT EXISTS idx_jwt_blacklist_expires_at ON jwt_blacklist(expires_at);

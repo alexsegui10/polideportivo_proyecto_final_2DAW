@@ -1,5 +1,5 @@
 import { Box, Typography, Grid, Card, CardContent } from '@mui/material';
-import { Dashboard, People, EventNote, Groups, FitnessCenter, Payment } from '@mui/icons-material';
+import { Dashboard, People, EventNote, Groups, Payment } from '@mui/icons-material';
 import { useNavigate } from 'react-router-dom';
 
 /**
@@ -13,7 +13,6 @@ export default function DashboardPage() {
     { title: 'Usuarios', icon: <People fontSize="large" />, path: '/dashboard/usuarios', color: '#4caf50' },
     { title: 'Reservas', icon: <EventNote fontSize="large" />, path: '/dashboard/reservas', color: '#ff9800' },
     { title: 'Clubs', icon: <Groups fontSize="large" />, path: '/dashboard/clubs', color: '#9c27b0' },
-    { title: 'Clases', icon: <FitnessCenter fontSize="large" />, path: '/dashboard/clases', color: '#f44336' },
     { title: 'Pagos', icon: <Payment fontSize="large" />, path: '/dashboard/pagos', color: '#00bcd4' },
   ];
 
