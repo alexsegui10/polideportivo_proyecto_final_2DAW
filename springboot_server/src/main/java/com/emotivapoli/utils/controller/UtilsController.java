@@ -7,6 +7,7 @@ import org.springframework.web.bind.annotation.*;
 
 /**
  * Controlador para utilidades generales del sistema
+ * // test
  */
 @RestController
 @RequestMapping("/api/utils")

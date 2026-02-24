@@ -1,3 +1,4 @@
+// test
 package com.emotivapoli.clase.infrastructure.repository;
 
 import com.emotivapoli.clase.domain.entity.ClasePublica;
@@ -11,6 +12,7 @@ import org.springframework.data.jpa.repository.Query;
 import org.springframework.stereotype.Repository;
 
 import java.math.BigDecimal;
+import java.time.LocalDateTime;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Optional;
@@ -28,7 +30,7 @@ public interface ClasePublicaRepository extends JpaRepository<ClasePublica, Long
     /**
      * Búsqueda dinámica de clases con filtros
      */
-    default Page<ClasePublica> searchClases(String q, String deporte, String nivel, BigDecimal precioMax, Pageable pageable) {
+    default Page<ClasePublica> searchClases(String q, String deporte, String nivel, BigDecimal precioMax, LocalDateTime fechaDesde, Pageable pageable) {
         Specification<ClasePublica> spec = (root, query, criteriaBuilder) -> {
             List<Predicate> predicates = new ArrayList<>();
 
@@ -70,6 +72,11 @@ public interface ClasePublicaRepository extends JpaRepository<ClasePublica, Long
             // Filtro por precio máximo
             if (precioMax != null) {
                 predicates.add(criteriaBuilder.lessThanOrEqualTo(root.get("precio"), precioMax));
+            }
+
+            // Solo clases futuras
+            if (fechaDesde != null) {
+                predicates.add(criteriaBuilder.greaterThan(root.get("fechaHoraInicio"), fechaDesde));
             }
 
             return criteriaBuilder.and(predicates.toArray(new Predicate[0]));

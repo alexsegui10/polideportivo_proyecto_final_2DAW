@@ -1,3 +1,4 @@
+// test
 package com.emotivapoli.clase.application.service;
 
 import com.emotivapoli.clase.application.mapper.ClasePublicaMapper;
@@ -214,7 +215,7 @@ public class ClasePublicaService {
         }
 
         Pageable pageable = PageRequest.of(page, limit, sortBy);
-        Page<ClasePublica> clasesPage = claseRepository.searchClases(q, deporte, nivel, precioMax, pageable);
+        Page<ClasePublica> clasesPage = claseRepository.searchClases(q, deporte, nivel, precioMax, LocalDateTime.now(), pageable);
         return clasesPage.map(claseMapper::toDTO);
     }
 }
