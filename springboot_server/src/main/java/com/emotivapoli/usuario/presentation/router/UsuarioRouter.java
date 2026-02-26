@@ -1,6 +1,8 @@
 package com.emotivapoli.usuario.presentation.router;
 
 import com.emotivapoli.usuario.presentation.controller.UsuarioController;
+import jakarta.validation.Valid;
+import com.emotivapoli.usuario.presentation.request.ChangePasswordRequest;
 import com.emotivapoli.usuario.presentation.request.UsuarioCreateRequest;
 import com.emotivapoli.usuario.presentation.request.UsuarioUpdateRequest;
 import com.emotivapoli.usuario.presentation.response.UsuarioResponse;
@@ -85,6 +87,18 @@ public class UsuarioRouter {
             @RequestBody UsuarioUpdateRequest request) {
         UsuarioResponse usuarioActualizado = usuarioController.updateUsuarioBySlug(slug, request);
         return ResponseEntity.ok(usuarioActualizado);
+    }
+
+    /**
+     * PATCH /api/usuarios/{slug}/change-password - Cambiar contraseña
+     */
+    @PatchMapping("/api/usuarios/{slug}/change-password")
+    @Operation(summary = "Cambiar contraseña del usuario (requiere contraseña actual)")
+    public ResponseEntity<Void> changePassword(
+            @PathVariable String slug,
+            @Valid @RequestBody ChangePasswordRequest request) {
+        usuarioController.changePasswordBySlug(slug, request);
+        return ResponseEntity.noContent().build();
     }
 
     /**

@@ -5,7 +5,7 @@
 
 import React, { createContext, useState, useEffect, ReactNode } from 'react';
 import { JwtService } from '../services/JwtService';
-import { authChannel } from '../services/apiSpring';
+import { authChannel, refreshSession } from '../services/apiSpring';
 import { getCurrentUser } from '../services/queries/authQueries';
 import {
   login as loginService,
@@ -50,29 +50,29 @@ interface AuthProviderProps { children: ReactNode; }
 
 export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
   const [user, setUser] = useState<Usuario | null>(null);
-  const [token, setToken] = useState<string | null>(null);
+  // Inicializar token DESDE localStorage directamente — evita que el efecto
+  // de sincronización corra con null en el primer render y borre el token.
+  const [token, setToken] = useState<string | null>(() => JwtService.getToken());
   const [isLoading, setIsLoading] = useState<boolean>(true);
 
   const isAuth  = !!user && !!token;
   const isAdmin = user?.role.toLowerCase() === 'admin';
 
-  // ── Logout ──────────────────────────────────────────────────────
   const logout = async (): Promise<void> => {
-    await logoutService();   // invalida DB + borra cookie HttpOnly
+    try { await logoutService(); } catch { /* ignorar si ya expiró */ }
     setUser(null);
     setToken(null);
     window.location.href = '/auth/login';
   };
 
-  // ── Login ───────────────────────────────────────────────────────
   const login = async (credentials: LoginRequest): Promise<AuthResponse> => {
     const response = await loginService(credentials);
     setUser(response.usuario);
     setToken(response.accessToken);
+    console.log('[AUTH] Login OK - role:', response.usuario.role, '| token inicio:', response.accessToken.substring(0, 40));
     return response;
   };
 
-  // ── Register ────────────────────────────────────────────────────
   const register = async (data: RegisterRequest): Promise<AuthResponse> => {
     const response = await registerService(data);
     setUser(response.usuario);
@@ -80,68 +80,125 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
     return response;
   };
 
-  // ── Reload user ──────────────────────────────────────────────────
   const reloadUser = async () => {
     try {
       const userData = await getCurrentUser();
       setUser(userData);
-    } catch {
-      logout();
+    } catch (err: any) {
+      const status = err?.response?.status;
+      console.log('[AUTH] reloadUser FAIL - status:', status);
+      if (status === 401) logout();
     }
   };
 
-  // ── Restaurar sesión al iniciar ──────────────────────────────────
   useEffect(() => {
     const initAuth = async () => {
       setIsLoading(true);
       const storedToken = JwtService.getToken();
+      console.log('[AUTH] initAuth - token en storage:', storedToken ? 'EXISTE(' + storedToken.substring(0,20) + ')' : 'NINGUNO');
+
+      console.log('[AUTH] initAuth START - token:', storedToken ? storedToken.substring(0, 40) + '...' : 'NINGUNO');
 
       if (storedToken) {
-        setToken(storedToken);
+        // Token ya está en el estado inicial — no hace falta setToken aquí
+        const tryGetUser = async (): Promise<void> => {
+          const userData = await getCurrentUser();
+          const currentToken = JwtService.getToken();
+          if (currentToken && currentToken !== storedToken) setToken(currentToken);
+          setUser(userData);
+        };
+
         try {
+          await tryGetUser();
+          console.log('[AUTH] initAuth - getCurrentUser OK');
+        } catch (firstErr: any) {
+          const status = firstErr?.response?.status;
+          console.log('[AUTH] initAuth - FAIL status:', status, '| token ahora:', JwtService.getToken() ? 'EXISTE' : 'DESTRUIDO');
+
+          if (!status) {
+            console.log('[AUTH] Red caida - reintentando en 2s...');
+            try {
+              await new Promise(r => setTimeout(r, 2000));
+              await tryGetUser();
+              console.log('[AUTH] Reintento OK');
+            } catch (retryErr: any) {
+              console.log('[AUTH] Reintento FAIL status:', retryErr?.response?.status);
+              if (!JwtService.getToken()) setToken(null);
+            }
+          } else if (status === 401) {
+            // Token expirado — destruirlo activamente y limpiar sesión
+            // El interceptor no lo manejó (Axios headers bug), lo hacemos aquí
+            console.log('[AUTH] 401 en initAuth - token expirado, limpiando');
+            JwtService.destroyToken();
+            setToken(null);
+            const publicPaths = ['/auth', '/login', '/register'];
+            const isPublic = publicPaths.some(p => window.location.pathname.startsWith(p));
+            if (!isPublic) window.location.href = '/auth/login';
+          } else {
+            console.log('[AUTH] Error', status, '- preservando token');
+          }
+        }
+      } else {
+        console.log('[AUTH] Sin token local - intentando refresh con cookie...');
+        try {
+          const { data } = await refreshSession();
+          JwtService.saveToken(data.accessToken);
+          setToken(data.accessToken);
           const userData = await getCurrentUser();
           setUser(userData);
+          console.log('[AUTH] Sesion restaurada via cookie');
         } catch {
-          // Access token expirado → el interceptor de apiSpring ya intenta refresh
-          // Si llega aquí es porque refresh también falló → limpiar
-          JwtService.destroyToken();
-          setToken(null);
+          console.log('[AUTH] Sin cookie valida - no autenticado');
         }
       }
-      // Si no hay access token pero hay cookie de refresh, el interceptor lo gestionará
-      // en la primera petición protegida (devuelve 401 → refresh → retry)
 
+      console.log('[AUTH] initAuth END');
       setIsLoading(false);
     };
 
     initAuth();
   }, []);
 
-  // ── Sincronizar token en localStorage ───────────────────────────
   useEffect(() => {
-    if (token) {
-      JwtService.saveToken(token);
-    } else {
-      JwtService.destroyToken();
-    }
+    if (token) JwtService.saveToken(token);
+    else JwtService.destroyToken();
   }, [token]);
 
-  // ── BroadcastChannel: escuchar eventos de otras pestañas ────────
+  useEffect(() => {
+    const handleTokenRefreshed = (e: Event) => {
+      const newToken = (e as CustomEvent<{ token: string }>).detail.token;
+      console.log('[AUTH] auth:tokenRefreshed');
+      setToken(newToken);
+    };
+    window.addEventListener('auth:tokenRefreshed', handleTokenRefreshed);
+    return () => window.removeEventListener('auth:tokenRefreshed', handleTokenRefreshed);
+  }, []);
+
+  useEffect(() => {
+    const handleSessionExpired = () => {
+      console.log('[AUTH] auth:sessionExpired - redirigiendo a login');
+      setUser(null);
+      setToken(null);
+      const publicPaths = ['/auth', '/login', '/register'];
+      const isPublic = publicPaths.some(p => window.location.pathname.startsWith(p));
+      if (!isPublic) window.location.href = '/auth/login';
+    };
+    window.addEventListener('auth:sessionExpired', handleSessionExpired);
+    return () => window.removeEventListener('auth:sessionExpired', handleSessionExpired);
+  }, []);
+
   useEffect(() => {
     const handleMessage = (event: MessageEvent) => {
       if (event.data?.type === 'LOGOUT') {
-        // Otra pestaña hizo logout → limpiar estado sin llamar a la API de nuevo
         setUser(null);
         setToken(null);
         JwtService.destroyToken();
       } else if (event.data?.type === 'TOKEN_REFRESHED') {
-        // Otra pestaña refrescó el token → actualizar el nuestro
         const newToken: string = event.data.token;
         setToken(newToken);
         JwtService.saveToken(newToken);
       }
     };
-
     authChannel.addEventListener('message', handleMessage);
     return () => authChannel.removeEventListener('message', handleMessage);
   }, []);

@@ -1,7 +1,8 @@
 import { useState } from 'react';
 import { Box, Typography, Grid, Paper, Chip, Avatar, IconButton } from '@mui/material';
-import { DirectionsRun, SportsTennis, SelfImprovement, ArrowBack, ArrowForward } from '@mui/icons-material';
+import { DirectionsRun, SportsTennis, SelfImprovement, ArrowBack, ArrowForward, ArrowOutward } from '@mui/icons-material';
 import { Club } from '../../types';
+import { useNavigate } from 'react-router-dom';
 
 interface ExclusiveClubsProps {
   clubs: Club[];
@@ -24,6 +25,7 @@ const getClubColor = (deporte: string) => {
 };
 
 export const ExclusiveClubs = ({ clubs }: ExclusiveClubsProps) => {
+  const navigate = useNavigate();
   const [currentPage, setCurrentPage] = useState(0);
   const itemsPerPage = 3;
   const totalPages = Math.ceil(clubs.length / itemsPerPage);
@@ -56,7 +58,8 @@ export const ExclusiveClubs = ({ clubs }: ExclusiveClubsProps) => {
         >
           Clubs Exclusivos
         </Typography>
-        <Box sx={{ display: 'flex', gap: 1 }}>
+        <Box sx={{ display: 'flex', alignItems: 'center', gap: 2 }}>
+          <Box sx={{ display: 'flex', gap: 1 }}>
           <IconButton
             onClick={handlePrev}
             disabled={clubs.length <= itemsPerPage}
@@ -98,6 +101,23 @@ export const ExclusiveClubs = ({ clubs }: ExclusiveClubsProps) => {
             <ArrowForward />
           </IconButton>
         </Box>
+        <Box
+          onClick={() => navigate('/clubs')}
+          sx={{
+            display: { xs: 'none', md: 'flex' },
+            alignItems: 'center',
+            gap: 0.5,
+            color: '#144bb8',
+            cursor: 'pointer',
+            fontWeight: 'bold',
+            fontSize: '0.875rem',
+            '&:hover': { color: 'white' }
+          }}
+        >
+          Ver Todos
+          <ArrowForward sx={{ fontSize: 18 }} />
+        </Box>
+      </Box>
       </Box>
 
       {/* Clubs Carousel Grid */}
@@ -110,6 +130,7 @@ export const ExclusiveClubs = ({ clubs }: ExclusiveClubsProps) => {
           return (
             <Grid item xs={12} md={4} key={club.id}>
               <Paper
+                onClick={() => navigate(`/clubs?deporte=${encodeURIComponent(club.deporte)}`)}
                 sx={{
                   display: 'flex',
                   flexDirection: 'column',
@@ -260,13 +281,15 @@ export const ExclusiveClubs = ({ clubs }: ExclusiveClubsProps) => {
                       color: 'white',
                       fontWeight: 'bold',
                       fontSize: '0.875rem',
+                      display: 'flex',
+                      alignItems: 'center',
+                      gap: 0.5,
                       transition: 'color 0.3s',
-                      '&:hover': {
-                        color: '#144bb8'
-                      }
+                      '&:hover': { color: '#144bb8' }
                     }}
                   >
                     {club.status === 'activo' ? 'Unirse al Club' : 'Solicitar'}
+                    <ArrowOutward sx={{ fontSize: 14 }} />
                   </Typography>
                 </Box>
               </Paper>

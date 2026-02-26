@@ -2,11 +2,18 @@
  * ProfileAjustes - Pestaña de ajustes del perfil (solo visible para el owner)
  */
 
-import { Box, Typography, Switch, FormControlLabel, Button, Divider } from '@mui/material'
+import { useState } from 'react'
+import {
+  Box, Typography, Switch, FormControlLabel, Button, Divider,
+  Dialog, DialogTitle, DialogContent, DialogActions,
+  TextField, CircularProgress, Alert
+} from '@mui/material'
 import NotificationsIcon from '@mui/icons-material/Notifications'
 import SecurityIcon from '@mui/icons-material/Security'
 import LanguageIcon from '@mui/icons-material/Language'
 import DeleteOutlineIcon from '@mui/icons-material/DeleteOutline'
+import { useAuth } from '../../hooks'
+import { changePassword } from '../../services/mutations/usuariosMutations'
 
 const sectionSx = {
   bgcolor: '#111722',
@@ -23,6 +30,63 @@ const NOTIFICACIONES = [
 ]
 
 export const ProfileAjustes = () => {
+  const { user } = useAuth()
+
+  // ── Estado del diálogo de cambio de contraseña ──
+  const [dialogOpen, setDialogOpen]       = useState(false)
+  const [currentPwd, setCurrentPwd]       = useState('')
+  const [newPwd, setNewPwd]               = useState('')
+  const [confirmPwd, setConfirmPwd]       = useState('')
+  const [pwdLoading, setPwdLoading]       = useState(false)
+  const [pwdError, setPwdError]           = useState<string | null>(null)
+  const [pwdSuccess, setPwdSuccess]       = useState(false)
+
+  const handleCloseDialog = () => {
+    setDialogOpen(false)
+    setCurrentPwd('')
+    setNewPwd('')
+    setConfirmPwd('')
+    setPwdError(null)
+    setPwdSuccess(false)
+  }
+
+  const handleChangePassword = async () => {
+    if (newPwd !== confirmPwd) {
+      setPwdError('Las contraseñas nuevas no coinciden')
+      return
+    }
+    if (newPwd.length < 8) {
+      setPwdError('La nueva contraseña debe tener al menos 8 caracteres')
+      return
+    }
+    if (!user?.slug) return
+    setPwdLoading(true)
+    setPwdError(null)
+    try {
+      await changePassword(user.slug, { currentPassword: currentPwd, newPassword: newPwd })
+      setPwdSuccess(true)
+      setTimeout(handleCloseDialog, 1500)
+    } catch (err: unknown) {
+      const msg = (err as { response?: { data?: { error?: string } } })?.response?.data?.error
+      setPwdError(msg ?? 'Error al cambiar la contraseña')
+    } finally {
+      setPwdLoading(false)
+    }
+  }
+
+  const pwdFieldSx = {
+    '& .MuiOutlinedInput-root': {
+      bgcolor: '#0f1720',
+      color: 'white',
+      '& fieldset': { borderColor: '#1e293b' },
+      '&:hover fieldset': { borderColor: '#334155' },
+      '&.Mui-focused fieldset': { borderColor: '#067ff9' },
+    },
+    '& input': { fontSize: '0.875rem' },
+    '& .MuiInputLabel-root': { color: '#94a3b8' },
+    '& .MuiInputLabel-root.Mui-focused': { color: '#067ff9' },
+  }
+
   return (
     <Box sx={{ display: 'flex', flexDirection: 'column', gap: 3 }}>
 
@@ -76,6 +140,7 @@ export const ProfileAjustes = () => {
         <Button
           variant="outlined"
           size="small"
+          onClick={() => setDialogOpen(true)}
           sx={{
             color: '#067ff9', borderColor: 'rgba(6,127,249,0.3)',
             textTransform: 'none', fontWeight: 600, fontSize: '0.875rem',
@@ -127,6 +192,83 @@ export const ProfileAjustes = () => {
           Eliminar Cuenta
         </Button>
       </Box>
+
+      {/* ── Diálogo: Cambiar Contraseña ── */}
+      <Dialog
+        open={dialogOpen}
+        onClose={handleCloseDialog}
+        PaperProps={{ sx: { bgcolor: '#111722', border: '1px solid rgba(255,255,255,0.08)', borderRadius: 3, minWidth: 360 } }}
+      >
+        <DialogTitle sx={{ color: 'white', fontWeight: 700, pb: 1 }}>
+          Cambiar Contraseña
+        </DialogTitle>
+
+        <DialogContent sx={{ display: 'flex', flexDirection: 'column', gap: 2.5, pt: '16px !important' }}>
+          {pwdSuccess && (
+            <Alert severity="success" sx={{ bgcolor: 'rgba(34,197,94,0.1)', color: '#22c55e' }}>
+              ¡Contraseña actualizada correctamente!
+            </Alert>
+          )}
+          {pwdError && (
+            <Alert severity="error" sx={{ bgcolor: 'rgba(239,68,68,0.1)', color: '#ef4444' }}>
+              {pwdError}
+            </Alert>
+          )}
+
+          <TextField
+            label="Contraseña actual"
+            type="password"
+            fullWidth
+            value={currentPwd}
+            onChange={e => setCurrentPwd(e.target.value)}
+            disabled={pwdLoading || pwdSuccess}
+            sx={pwdFieldSx}
+          />
+          <TextField
+            label="Nueva contraseña"
+            type="password"
+            fullWidth
+            value={newPwd}
+            onChange={e => setNewPwd(e.target.value)}
+            disabled={pwdLoading || pwdSuccess}
+            helperText="Mínimo 8 caracteres"
+            FormHelperTextProps={{ sx: { color: '#64748b' } }}
+            sx={pwdFieldSx}
+          />
+          <TextField
+            label="Confirmar nueva contraseña"
+            type="password"
+            fullWidth
+            value={confirmPwd}
+            onChange={e => setConfirmPwd(e.target.value)}
+            disabled={pwdLoading || pwdSuccess}
+            sx={pwdFieldSx}
+          />
+        </DialogContent>
+
+        <DialogActions sx={{ px: 3, pb: 3, gap: 1 }}>
+          <Button
+            onClick={handleCloseDialog}
+            disabled={pwdLoading}
+            sx={{ color: '#64748b', textTransform: 'none' }}
+          >
+            Cancelar
+          </Button>
+          <Button
+            variant="contained"
+            onClick={handleChangePassword}
+            disabled={pwdLoading || pwdSuccess || !currentPwd || !newPwd || !confirmPwd}
+            startIcon={pwdLoading ? <CircularProgress size={16} color="inherit" /> : undefined}
+            sx={{
+              bgcolor: '#067ff9',
+              '&:hover': { bgcolor: '#0558b8' },
+              textTransform: 'none', fontWeight: 600
+            }}
+          >
+            {pwdLoading ? 'Guardando…' : 'Confirmar'}
+          </Button>
+        </DialogActions>
+      </Dialog>
 
     </Box>
   )

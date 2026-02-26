@@ -3,6 +3,7 @@ package com.emotivapoli.usuario.presentation.controller;
 import com.emotivapoli.usuario.application.service.UsuarioService;
 import com.emotivapoli.usuario.domain.dto.UsuarioDTO;
 import com.emotivapoli.usuario.infrastructure.mapper.UsuarioMapper;
+import com.emotivapoli.usuario.presentation.request.ChangePasswordRequest;
 import com.emotivapoli.usuario.presentation.request.UsuarioCreateRequest;
 import com.emotivapoli.usuario.presentation.request.UsuarioUpdateRequest;
 import com.emotivapoli.usuario.presentation.response.UsuarioResponse;
@@ -113,6 +114,25 @@ public class UsuarioController {
         }
 
         return updateUsuario(targetUser.getId(), request);
+    }
+
+    /**
+     * Cambiar contraseña — doble verificación:
+     *   1. SecurityConfig exige token válido (authenticated)
+     *   2. Aquí verificamos que el autenticado es el dueño del perfil
+     */
+    public void changePasswordBySlug(String slug, ChangePasswordRequest request) {
+        Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
+        String currentEmail = authentication.getName();
+
+        // Solo el mismo usuario puede cambiar su propia contraseña
+        UsuarioDTO targetUser = usuarioService.getUsuarioBySlug(slug);
+        UsuarioDTO currentUser = usuarioService.getUsuarioByEmail(currentEmail);
+        if (!currentUser.getSlug().equals(targetUser.getSlug())) {
+            throw new AccessDeniedException("Solo puedes cambiar tu propia contraseña");
+        }
+
+        usuarioService.changePassword(targetUser.getId(), request.getCurrentPassword(), request.getNewPassword());
     }
 
     public void deleteUsuarioBySlug(String slug) {

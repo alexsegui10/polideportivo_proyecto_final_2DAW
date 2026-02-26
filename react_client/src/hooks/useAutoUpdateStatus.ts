@@ -14,7 +14,7 @@ export const useAutoUpdateStatus = () => {
     const actualizarEstados = async () => {
       try {
         // Llamar a las funciones SQL que actualizan estados
-        await api.post('/api/utils/actualizar-estados');
+        await api.post('/utils/actualizar-estados');
       } catch (error) {
         console.error('Error al actualizar estados automáticamente:', error);
       }

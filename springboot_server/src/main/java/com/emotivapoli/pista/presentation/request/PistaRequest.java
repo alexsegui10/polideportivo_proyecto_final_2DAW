@@ -10,7 +10,7 @@ public class PistaRequest {
     @Pattern(regexp = "^(Pádel|Tenis|Fútbol Sala|Baloncesto|Spinning|Yoga)$", message = "El deporte debe ser uno de: Pádel, Tenis, Fútbol Sala, Baloncesto, Spinning, Yoga")
     private String tipo;
 
-    @Pattern(regexp = "^(disponible|ocupada|mantenimiento|eliminado)$", message = "El estado debe ser uno de: disponible, ocupada, mantenimiento, eliminado")
+    @Pattern(regexp = "^(disponible|ocupada|reservada|mantenimiento|eliminado)$", message = "El estado debe ser uno de: disponible, ocupada, reservada, mantenimiento, eliminado")
     private String status;
     private Boolean isActive;
     private String slug;

@@ -202,6 +202,11 @@ export interface UsuarioUpdateRequest {
   codigoPostal?: string;
 }
 
+export interface ChangePasswordRequest {
+  currentPassword: string;
+  newPassword: string;
+}
+
 // Types para Pagos
 export interface Pago {
   id: number;

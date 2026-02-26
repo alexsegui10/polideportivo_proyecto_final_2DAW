@@ -9,6 +9,8 @@ import com.emotivapoli.exception.DuplicateResourceException;
 import com.emotivapoli.exception.ResourceNotFoundException;
 import com.emotivapoli.exception.ValidationException;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.security.access.AccessDeniedException;
+import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 
 import java.time.LocalDateTime;
@@ -24,6 +26,9 @@ public class UsuarioService {
 
     @Autowired
     private UsuarioMapper usuarioMapper;
+
+    @Autowired
+    private PasswordEncoder passwordEncoder;
 
     // Listar activos
     public List<UsuarioDTO> getAllUsuarios() {
@@ -146,6 +151,25 @@ public class UsuarioService {
 
         Usuario usuarioActualizado = usuarioRepository.save(usuarioExistente);
         return usuarioMapper.toDTO(usuarioActualizado);
+    }
+
+    /**
+     * Cambiar contraseña verificando la actual.
+     * Solo el propio usuario puede llamar a este método (verificación en el controller).
+     */
+    public void changePassword(Long id, String currentPassword, String newPassword) {
+        Usuario usuario = usuarioRepository.findById(id)
+                .orElseThrow(() -> new ResourceNotFoundException("Usuario no encontrado con ID: " + id));
+
+        // Verificar que la contraseña actual es correcta
+        if (!passwordEncoder.matches(currentPassword, usuario.getPasswordHash())) {
+            throw new AccessDeniedException("La contraseña actual es incorrecta");
+        }
+
+        // Codificar y guardar la nueva contraseña
+        usuario.setPasswordHash(passwordEncoder.encode(newPassword));
+        usuario.setUpdatedAt(LocalDateTime.now());
+        usuarioRepository.save(usuario);
     }
 
     /**

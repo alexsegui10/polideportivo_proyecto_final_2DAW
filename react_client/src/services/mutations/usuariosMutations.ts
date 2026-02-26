@@ -1,5 +1,5 @@
 import { apiSpring as api } from '../apiSpring';
-import { Usuario, UsuarioCreateRequest, UsuarioUpdateRequest } from '../../types';
+import { Usuario, UsuarioCreateRequest, UsuarioUpdateRequest, ChangePasswordRequest } from '../../types';
 
 /**
  * Crear nuevo usuario
@@ -15,6 +15,13 @@ export const createUsuario = async (usuario: UsuarioCreateRequest): Promise<Usua
 export const updateUsuario = async (slug: string, usuario: UsuarioUpdateRequest): Promise<Usuario> => {
   const response = await api.put(`/usuarios/${slug}`, usuario);
   return response.data;
+};
+
+/**
+ * Cambiar contraseña del usuario
+ */
+export const changePassword = async (slug: string, data: ChangePasswordRequest): Promise<void> => {
+  await api.patch(`/usuarios/${slug}/change-password`, data);
 };
 
 /**

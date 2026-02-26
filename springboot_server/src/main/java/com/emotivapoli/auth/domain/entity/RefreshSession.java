@@ -8,7 +8,6 @@ import java.util.UUID;
  * Entidad que representa una sesión de refresh token.
  * Cada fila = un dispositivo/familia de tokens.
  *
- * Patrón de la profesora (1_refresh_jwt.txt):
  *   - familyId   → detectar robo de token reutilizado
  *   - deviceId   → logout por dispositivo
  *   - revoked    → blacklist de refresh tokens

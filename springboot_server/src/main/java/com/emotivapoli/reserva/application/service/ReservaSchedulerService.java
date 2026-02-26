@@ -31,9 +31,12 @@ public class ReservaSchedulerService {
         try {
             logger.info("Ejecutando actualización automática de estados...");
             
-            // Llamar a las funciones PostgreSQL (void functions)
-            entityManager.createNativeQuery("SELECT actualizar_estado_reservas()").executeUpdate();
-            entityManager.createNativeQuery("SELECT actualizar_estado_clases()").executeUpdate();
+            // Llamar a las funciones PostgreSQL.
+            // IMPORTANTE: usar getSingleResult(), no executeUpdate().
+            // executeUpdate() falla con PSQLException si la consulta devuelve filas
+            // (las funciones PostgreSQL siempre devuelven un result set con SELECT).
+            entityManager.createNativeQuery("SELECT actualizar_estado_reservas()").getSingleResult();
+            entityManager.createNativeQuery("SELECT actualizar_estado_clases()").getSingleResult();
             
             logger.info("Estados actualizados correctamente");
             

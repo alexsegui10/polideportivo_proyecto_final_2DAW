@@ -58,8 +58,9 @@ public class SecurityConfig {
                         .requestMatchers(HttpMethod.PATCH, "/api/usuarios/*/soft-delete").hasRole("ADMIN")
 
                         // ── Cualquier usuario autenticado ────────────────────────────
-                        .requestMatchers(HttpMethod.GET, "/api/usuario").authenticated()
-                        .requestMatchers(HttpMethod.PUT, "/api/usuarios/**").authenticated()
+                        .requestMatchers(HttpMethod.GET,   "/api/usuario").authenticated()
+                        .requestMatchers(HttpMethod.PUT,   "/api/usuarios/**").authenticated()
+                        .requestMatchers(HttpMethod.PATCH, "/api/usuarios/*/change-password").authenticated()
                         .anyRequest().authenticated()
                 )
                 // 401 para no autenticados (sin token), 403 para sin permisos
@@ -68,6 +69,11 @@ public class SecurityConfig {
                             response.setStatus(HttpServletResponse.SC_UNAUTHORIZED);
                             response.setContentType("application/json;charset=UTF-8");
                             response.getWriter().write("{\"error\": \"No autenticado. Token requerido.\"}");
+                        })
+                        .accessDeniedHandler((request, response, accessDeniedException) -> {
+                            response.setStatus(HttpServletResponse.SC_FORBIDDEN);
+                            response.setContentType("application/json;charset=UTF-8");
+                            response.getWriter().write("{\"error\": \"Acceso denegado. No tienes permisos suficientes.\"}");
                         })
                 )
                 .addFilterBefore(securityFilter, UsernamePasswordAuthenticationFilter.class)

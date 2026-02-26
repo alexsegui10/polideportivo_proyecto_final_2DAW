@@ -48,6 +48,10 @@ export const CalendarioGestion = () => {
     const { clases, refetch: refetchClases } = useClases();
     const { createClase: createClaseMutation, updateClase, deleteClase } = useClasesMutations();
     const { reservas, refetch: refetchReservas } = useReservas();
+
+    // Versión para forzar remount de FullCalendar en cada mutación
+    const [calendarVersion, setCalendarVersion] = useState(0);
+    const bumpCalendar = () => setCalendarVersion(v => v + 1);
     const { createReserva: createReservaMutation, updateReserva, deleteReserva } = useReservasMutations();
     
     // Auto-actualizar estados basándose en fecha/hora
@@ -269,23 +273,27 @@ export const CalendarioGestion = () => {
     // Handlers para Create (el contexto ya actualiza el estado automáticamente)
     const handleCreateClase = async (data: any) => {
         await createClaseMutation(data);
-        await refetchClases(); // Refrescar calendario
+        await refetchClases();
+        bumpCalendar();
     };
 
     const handleCreateReserva = async (data: any) => {
         await createReservaMutation(data);
-        await refetchReservas(); // Refrescar calendario
+        await refetchReservas();
+        bumpCalendar();
     };
 
     // Handlers para Update con refetch
     const handleUpdateClase = async (slug: string, data: any) => {
         await updateClase(slug, data);
-        await refetchClases(); // Refrescar calendario
+        await refetchClases();
+        bumpCalendar();
     };
 
     const handleUpdateReserva = async (slug: string, data: any) => {
         await updateReserva(slug, data);
-        await refetchReservas(); // Refrescar calendario
+        await refetchReservas();
+        bumpCalendar();
     };
 
     // Acciones desde Detalles
@@ -321,11 +329,12 @@ export const CalendarioGestion = () => {
             try {
                 if (isClase) {
                     await deleteClase(event.slug);
-                    await refetchClases(); // Refrescar calendario
+                    await refetchClases();
                 } else {
                     await deleteReserva(event.slug);
-                    await refetchReservas(); // Refrescar calendario
+                    await refetchReservas();
                 }
+                bumpCalendar();
                 await successAlert(
                     '¡Eliminado!',
                     `La ${isClase ? 'clase' : 'reserva'} ha sido eliminada.`
@@ -742,7 +751,7 @@ export const CalendarioGestion = () => {
                 }}
             >
                 <FullCalendar
-                    key={`calendar-${clases.length}-${reservas.length}`}
+                    key={calendarVersion}
                     ref={(el) => { if (el) setCalendarApi(el.getApi()); }}
                     plugins={[resourceTimeGridPlugin, interactionPlugin]}
                     initialView="resourceTimeGridDay"

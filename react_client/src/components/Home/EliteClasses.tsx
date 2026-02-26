@@ -2,6 +2,7 @@ import { useState } from 'react';
 import { Box, Typography, Button, Paper, Stack } from '@mui/material';
 import { CalendarMonth, Person, Schedule } from '@mui/icons-material';
 import { ClasePublica } from '../../types';
+import { useNavigate } from 'react-router-dom';
 
 interface EliteClassesProps {
   clasesHoy: ClasePublica[];
@@ -9,6 +10,7 @@ interface EliteClassesProps {
 }
 
 export const EliteClasses = ({ clasesHoy, clasesMañana }: EliteClassesProps) => {
+  const navigate = useNavigate();
   const [tabValue, setTabValue] = useState<'hoy' | 'mañana'>('hoy');
   const clases = tabValue === 'hoy' ? clasesHoy : clasesMañana;
 
@@ -72,8 +74,8 @@ export const EliteClasses = ({ clasesHoy, clasesMañana }: EliteClassesProps) =>
           </Typography>
         </Box>
         
-        {/* Tabs */}
-        <Box sx={{ display: 'flex', gap: 1 }}>
+        {/* Tabs + Ver Todas */}
+        <Box sx={{ display: 'flex', alignItems: 'center', gap: 2 }}>
           <Button
             onClick={() => setTabValue('hoy')}
             variant={tabValue === 'hoy' ? 'contained' : 'outlined'}
@@ -126,6 +128,23 @@ export const EliteClasses = ({ clasesHoy, clasesMañana }: EliteClassesProps) =>
           >
             Mañana
           </Button>
+          <Box
+            onClick={() => navigate('/clases')}
+            sx={{
+              display: { xs: 'none', md: 'flex' },
+              alignItems: 'center',
+              gap: 0.5,
+              color: '#144bb8',
+              cursor: 'pointer',
+              fontWeight: 'bold',
+              fontSize: '0.875rem',
+              pl: 1,
+              borderLeft: '1px solid #243047',
+              '&:hover': { color: 'white' }
+            }}
+          >
+            Ver Todas
+          </Box>
         </Box>
       </Box>
 
@@ -139,6 +158,7 @@ export const EliteClasses = ({ clasesHoy, clasesMañana }: EliteClassesProps) =>
           clases.slice(0, 3).map((clase) => (
             <Paper
               key={clase.id}
+              onClick={() => navigate(`/clases?deporte=${encodeURIComponent(clase.deporte || '')}`)}
               sx={{
                 display: 'flex',
                 alignItems: 'center',
@@ -226,6 +246,7 @@ export const EliteClasses = ({ clasesHoy, clasesMañana }: EliteClassesProps) =>
                 <Button
                   variant="outlined"
                   fullWidth
+                  onClick={(e) => { e.stopPropagation(); navigate(`/clases?deporte=${encodeURIComponent(clase.deporte || '')}`); }}
                   sx={{
                     px: 4,
                     py: 1,

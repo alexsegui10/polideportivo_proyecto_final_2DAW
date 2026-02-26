@@ -14,7 +14,7 @@ import java.util.Map;
 import java.util.UUID;
 
 /**
- *   - admin:    access 5 min  |  sin refresh (re-login)
+ *   - admin:    access 10 min  |  sin refresh (re-login)
  *   - monitor:  access 15 min |  refresh 7 días
  *   - cliente:  access 15 min |  refresh 30 días
  */
@@ -22,9 +22,9 @@ import java.util.UUID;
 public class TokenService {
 
     // ── Duraciones ──────────────────────────────────────────────────
-    private static final long ACCESS_MS_ADMIN   = 5L  * 60 * 1000;
+    private static final long ACCESS_MS_ADMIN   = 480L * 60 * 1000; // 8 horas — admin no tiene refresh token
     private static final long ACCESS_MS_DEFAULT = 15L * 60 * 1000;
-    public  static final long REFRESH_MS_MONITOR = 7L  * 24 * 60 * 60 * 1000;
+    public  static final long REFRESH_MS_MONITOR =  7L * 24 * 60 * 60 * 1000;
     public  static final long REFRESH_MS_CLIENTE = 30L * 24 * 60 * 60 * 1000;
 
     private final UsuarioRepository usuarioRepository;

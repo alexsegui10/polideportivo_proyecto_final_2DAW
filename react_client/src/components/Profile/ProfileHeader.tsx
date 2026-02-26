@@ -1,10 +1,19 @@
-import { Box, Typography, Avatar, Chip, Button, TextField, InputAdornment } from '@mui/material'
+import { useState, useCallback } from 'react'
+import {
+  Box, Typography, Avatar, Chip, Button, TextField,
+  InputAdornment, CircularProgress
+} from '@mui/material'
 import PersonIcon from '@mui/icons-material/Person'
 import BadgeIcon from '@mui/icons-material/Badge'
 import WorkIcon from '@mui/icons-material/Work'
 import EmailIcon from '@mui/icons-material/Email'
 import PhoneIcon from '@mui/icons-material/Phone'
 import CameraAltIcon from '@mui/icons-material/CameraAlt'
+import SaveIcon from '@mui/icons-material/Save'
+import CheckCircleIcon from '@mui/icons-material/CheckCircle'
+import { useAuth } from '../../hooks'
+import { updateUsuario } from '../../services/mutations/usuariosMutations'
+import type { ProfileResponse } from '../../types'
 
 const fieldSx = {
   '& .MuiOutlinedInput-root': {
@@ -19,18 +28,38 @@ const fieldSx = {
 }
 
 interface ProfileHeaderProps {
-  profile: {
-    nombre: string
-    apellidos: string
-    slug: string
-    role: string
-    especialidad?: string
-  }
+  profile: ProfileResponse
   isOwner: boolean
 }
 
 export const ProfileHeader = ({ profile, isOwner }: ProfileHeaderProps) => {
+  const { user, reloadUser } = useAuth()
+
+  const [nombre, setNombre]     = useState(profile.nombre)
+  const [apellidos, setApellidos] = useState(profile.apellidos)
+  const [telefono, setTelefono] = useState(isOwner ? (user?.telefono ?? '') : '')
+  const [saving, setSaving]     = useState(false)
+  const [saved, setSaved]       = useState(false)
+  const [saveError, setSaveError] = useState<string | null>(null)
+
   const initials = `${profile.nombre[0]}${profile.apellidos[0]}`.toUpperCase()
+
+  const handleSave = useCallback(async () => {
+    if (!isOwner) return
+    setSaving(true)
+    setSaveError(null)
+    try {
+      await updateUsuario(profile.slug, { nombre, apellidos, telefono })
+      await reloadUser()
+      setSaved(true)
+      setTimeout(() => setSaved(false), 3000)
+    } catch (err: unknown) {
+      const msg = (err as { response?: { data?: { error?: string } } })?.response?.data?.error
+      setSaveError(msg ?? 'Error al guardar los cambios')
+    } finally {
+      setSaving(false)
+    }
+  }, [isOwner, profile.slug, nombre, apellidos, telefono, reloadUser])
 
   return (
     <Box sx={{
@@ -58,13 +87,16 @@ export const ProfileHeader = ({ profile, isOwner }: ProfileHeaderProps) => {
         }}>
           {/* Avatar */}
           <Box sx={{ position: 'relative' }}>
-            <Avatar sx={{
-              width: 128, height: 128,
-              bgcolor: '#067ff9',
-              fontSize: '3rem', fontWeight: 700,
-              border: '4px solid #111722',
-              boxShadow: '0 8px 24px rgba(0,0,0,0.5)'
-            }}>
+            <Avatar
+              src={isOwner ? (user?.avatar ?? undefined) : (profile.avatar ?? undefined)}
+              sx={{
+                width: 128, height: 128,
+                bgcolor: '#067ff9',
+                fontSize: '3rem', fontWeight: 700,
+                border: '4px solid #111722',
+                boxShadow: '0 8px 24px rgba(0,0,0,0.5)'
+              }}
+            >
               {initials}
             </Avatar>
             {isOwner && (
@@ -83,11 +115,15 @@ export const ProfileHeader = ({ profile, isOwner }: ProfileHeaderProps) => {
           {/* Name & Badges */}
           <Box sx={{ flex: 1, textAlign: { xs: 'center', sm: 'left' }, pb: { sm: 2 } }}>
             <Typography variant="h5" fontWeight={700} sx={{ color: 'white', mb: 1.5 }}>
-              {profile.nombre} {profile.apellidos}
+              {isOwner ? nombre : profile.nombre} {isOwner ? apellidos : profile.apellidos}
             </Typography>
             <Box sx={{ display: 'flex', gap: 1.5, flexWrap: 'wrap', justifyContent: { xs: 'center', sm: 'flex-start' } }}>
               <Chip
-                label={profile.role === 'ADMIN' ? 'Administrador' : profile.role === 'INSTRUCTOR' ? 'Instructor' : 'Usuario'}
+                label={
+                  profile.role === 'ADMIN' ? 'Administrador'
+                  : profile.role === 'INSTRUCTOR' ? 'Instructor'
+                  : 'Usuario'
+                }
                 size="small"
                 icon={<span style={{ fontSize: '14px', marginLeft: '8px' }}>●</span>}
                 sx={{
@@ -101,28 +137,23 @@ export const ProfileHeader = ({ profile, isOwner }: ProfileHeaderProps) => {
                 }}
               />
               <Chip
-                label="Miembro desde 2024" size="small"
+                label={`Miembro desde ${new Date(profile.fechaCreacion).getFullYear()}`}
+                size="small"
                 sx={{ bgcolor: 'rgba(148,163,184,0.1)', color: '#94a3b8', border: 'none', height: 28 }}
               />
             </Box>
           </Box>
-
-          {isOwner && (
-            <Button sx={{
-              color: '#067ff9', textTransform: 'none', fontWeight: 600,
-              fontSize: '0.875rem', mb: { sm: 2 },
-              '&:hover': { bgcolor: 'rgba(6,127,249,0.05)' }
-            }}>
-              Editar Foto
-            </Button>
-          )}
         </Box>
 
         {/* Form Fields */}
         <Box sx={{ mt: 6, display: 'grid', gridTemplateColumns: { xs: '1fr', md: 'repeat(2,1fr)' }, gap: 3 }}>
           <Box>
-            <Typography variant="body2" fontWeight={500} sx={{ color: '#94a3b8', mb: 1 }}>Nombre Completo</Typography>
-            <TextField fullWidth defaultValue={profile.nombre} disabled={!isOwner}
+            <Typography variant="body2" fontWeight={500} sx={{ color: '#94a3b8', mb: 1 }}>Nombre</Typography>
+            <TextField
+              fullWidth
+              value={nombre}
+              onChange={e => setNombre(e.target.value)}
+              disabled={!isOwner || saving}
               InputProps={{ startAdornment: <InputAdornment position="start"><PersonIcon sx={{ color: '#475569', fontSize: 20 }} /></InputAdornment> }}
               sx={fieldSx}
             />
@@ -130,38 +161,87 @@ export const ProfileHeader = ({ profile, isOwner }: ProfileHeaderProps) => {
 
           <Box>
             <Typography variant="body2" fontWeight={500} sx={{ color: '#94a3b8', mb: 1 }}>Apellidos</Typography>
-            <TextField fullWidth defaultValue={profile.apellidos} disabled={!isOwner}
+            <TextField
+              fullWidth
+              value={apellidos}
+              onChange={e => setApellidos(e.target.value)}
+              disabled={!isOwner || saving}
               InputProps={{ startAdornment: <InputAdornment position="start"><BadgeIcon sx={{ color: '#475569', fontSize: 20 }} /></InputAdornment> }}
               sx={fieldSx}
             />
           </Box>
 
-          <Box>
-            <Typography variant="body2" fontWeight={500} sx={{ color: '#94a3b8', mb: 1 }}>Email</Typography>
-            <TextField fullWidth defaultValue="usuario@example.com" disabled={!isOwner} type="email"
-              InputProps={{ startAdornment: <InputAdornment position="start"><EmailIcon sx={{ color: '#475569', fontSize: 20 }} /></InputAdornment> }}
-              sx={fieldSx}
-            />
-          </Box>
+          {isOwner && (
+            <>
+              <Box>
+                <Typography variant="body2" fontWeight={500} sx={{ color: '#94a3b8', mb: 1 }}>
+                  Email <Typography component="span" variant="caption" sx={{ color: '#475569' }}>(no editable)</Typography>
+                </Typography>
+                <TextField
+                  fullWidth
+                  value={user?.email ?? ''}
+                  disabled
+                  type="email"
+                  InputProps={{ startAdornment: <InputAdornment position="start"><EmailIcon sx={{ color: '#475569', fontSize: 20 }} /></InputAdornment> }}
+                  sx={fieldSx}
+                />
+              </Box>
 
-          <Box>
-            <Typography variant="body2" fontWeight={500} sx={{ color: '#94a3b8', mb: 1 }}>Teléfono</Typography>
-            <TextField fullWidth defaultValue="+34 600 000 000" disabled={!isOwner}
-              InputProps={{ startAdornment: <InputAdornment position="start"><PhoneIcon sx={{ color: '#475569', fontSize: 20 }} /></InputAdornment> }}
-              sx={fieldSx}
-            />
-          </Box>
+              <Box>
+                <Typography variant="body2" fontWeight={500} sx={{ color: '#94a3b8', mb: 1 }}>Teléfono</Typography>
+                <TextField
+                  fullWidth
+                  value={telefono}
+                  onChange={e => setTelefono(e.target.value)}
+                  disabled={saving}
+                  InputProps={{ startAdornment: <InputAdornment position="start"><PhoneIcon sx={{ color: '#475569', fontSize: 20 }} /></InputAdornment> }}
+                  sx={fieldSx}
+                />
+              </Box>
+            </>
+          )}
 
           {profile.especialidad && (
             <Box sx={{ gridColumn: { xs: '1', md: 'span 2' } }}>
               <Typography variant="body2" fontWeight={500} sx={{ color: '#94a3b8', mb: 1 }}>Especialidad</Typography>
-              <TextField fullWidth defaultValue={profile.especialidad} disabled={!isOwner}
+              <TextField
+                fullWidth
+                value={profile.especialidad}
+                disabled
                 InputProps={{ startAdornment: <InputAdornment position="start"><WorkIcon sx={{ color: '#475569', fontSize: 20 }} /></InputAdornment> }}
                 sx={fieldSx}
               />
             </Box>
           )}
         </Box>
+
+        {/* Save Button — solo owner */}
+        {isOwner && (
+          <Box sx={{ mt: 3, display: 'flex', alignItems: 'center', gap: 2 }}>
+            <Button
+              variant="contained"
+              disabled={saving}
+              onClick={handleSave}
+              startIcon={
+                saving ? <CircularProgress size={16} color="inherit" />
+                : saved  ? <CheckCircleIcon />
+                : <SaveIcon />
+              }
+              sx={{
+                bgcolor: saved ? '#22c55e' : '#067ff9',
+                '&:hover': { bgcolor: saved ? '#16a34a' : '#0558b8' },
+                textTransform: 'none', fontWeight: 600
+              }}
+            >
+              {saving ? 'Guardando…' : saved ? '¡Guardado!' : 'Guardar cambios'}
+            </Button>
+            {saveError && (
+              <Typography variant="body2" sx={{ color: '#ef4444' }}>
+                {saveError}
+              </Typography>
+            )}
+          </Box>
+        )}
       </Box>
     </Box>
   )
