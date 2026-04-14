@@ -28,7 +28,9 @@
     "react-dom": "^18.2.0",
     "react-router-dom": "^6.21.1",
     "recharts": "^3.6.0",
-    "sweetalert2": "^11.26.17"
+    "sweetalert2": "^11.26.17",
+    "@stripe/stripe-js": "^4.0.0",
+    "@stripe/react-stripe-js": "^2.7.0"
   },
   "devDependencies": {
     "@tanstack/react-query-devtools": "^5.91.2",

@@ -1,6 +1,6 @@
 import { createContext, ReactNode } from 'react';
 import { ClubMiembro, ClubSuscripcion } from '../types';
-import { getMiembrosByClubId, getSuscripcionesByClubId, getSuscripcionesByMiembroUid } from '../services/queries/clubMiembroQueries';
+import { getMiembrosByClubId, getSuscripcionesByClubId, getSuscripcionesByMiembroUid, getClubsByUsuarioId } from '../services/queries/clubMiembroQueries';
 import { 
   inscribirMiembro as inscribirMiembroService, 
   darDeBajaMiembro as darDeBajaMiembroService, 
@@ -14,6 +14,7 @@ import {
 
 interface ClubMiembroContextType {
   getMiembrosByClubId: (clubId: number) => Promise<ClubMiembro[]>;
+  getClubsByUsuarioId: (usuarioId: number) => Promise<ClubMiembro[]>;
   getSuscripcionesByClubId: (clubId: number) => Promise<ClubSuscripcion[]>;
   getSuscripcionesByMiembroUid: (miembroUid: string) => Promise<ClubSuscripcion[]>;
   inscribirMiembro: (data: { clubId: number; usuarioId: number }) => Promise<ClubMiembro>;
@@ -36,6 +37,14 @@ export const ClubMiembroProvider = ({ children }: ClubMiembroProviderProps) => {
   const handleGetMiembrosByClubId = async (clubId: number): Promise<ClubMiembro[]> => {
     try {
       return await getMiembrosByClubId(clubId);
+    } catch (err) {
+      throw err;
+    }
+  };
+
+  const handleGetClubsByUsuarioId = async (usuarioId: number): Promise<ClubMiembro[]> => {
+    try {
+      return await getClubsByUsuarioId(usuarioId);
     } catch (err) {
       throw err;
     }
@@ -123,6 +132,7 @@ export const ClubMiembroProvider = ({ children }: ClubMiembroProviderProps) => {
 
   const value: ClubMiembroContextType = {
     getMiembrosByClubId: handleGetMiembrosByClubId,
+    getClubsByUsuarioId: handleGetClubsByUsuarioId,
     getSuscripcionesByClubId: handleGetSuscripcionesByClubId,
     getSuscripcionesByMiembroUid: handleGetSuscripcionesByMiembroUid,
     inscribirMiembro: handleInscribirMiembro,

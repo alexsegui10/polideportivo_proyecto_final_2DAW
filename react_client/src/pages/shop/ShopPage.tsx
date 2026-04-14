@@ -1,10 +1,12 @@
 import { useEffect, useState } from 'react';
 import { Box, CircularProgress, ThemeProvider, createTheme } from '@mui/material';
 import { useUrlState, useDebouncedValue, usePistasShopQueries } from '../../hooks';
+import { useAuth } from '../../hooks';
 import { Pista } from '../../types';
 import { FiltrosPistas } from '../../components/Shop/FiltrosPistas';
 import { ListaPistas } from '../../components/Shop/ListaPistas';
 import { PaginacionPistas } from '../../components/Shop/PaginacionPistas';
+import { ModalReservaPago } from '../../components/Shop/ModalReservaPago';
 
 const darkTheme = createTheme({
   palette: {
@@ -17,6 +19,16 @@ const darkTheme = createTheme({
 const ShopPage = () => {
   const url = useUrlState();
   const { searchPistas, error: contextError } = usePistasShopQueries();
+  const { isAuth } = useAuth();
+  const [pistaSeleccionada, setPistaSeleccionada] = useState<Pista | null>(null);
+
+  const handleReservar = (pista: Pista) => {
+    if (!isAuth) {
+      window.location.href = '/auth/login';
+      return;
+    }
+    setPistaSeleccionada(pista);
+  };
 
   // --- estado desde URL ---
   const q = url.get("q", "");
@@ -104,6 +116,12 @@ const ShopPage = () => {
 
   return (
     <ThemeProvider theme={darkTheme}>
+      {pistaSeleccionada && (
+        <ModalReservaPago
+          pista={pistaSeleccionada}
+          onClose={() => setPistaSeleccionada(null)}
+        />
+      )}
       <Box sx={{ display: 'flex', minHeight: '100vh', bgcolor: 'background.default' }}>
       {/* SIDEBAR FIJO CON FILTROS */}
       <Box 
@@ -158,11 +176,12 @@ const ShopPage = () => {
 
           {!state.loading && !state.error && (
             <>
-              <ListaPistas 
-                pistas={state.data} 
+              <ListaPistas
+                pistas={state.data}
                 totalElements={state.totalElements}
                 sort={sort}
                 setSort={setSort}
+                onReservar={handleReservar}
               />
               {state.data.length > 0 && (
                 <Box sx={{ mt: 6 }}>

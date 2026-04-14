@@ -8,6 +8,8 @@ interface ListaClubsProps {
   totalElements: number;
   sort: string;
   setSort: (value: string) => void;
+  onUnirse: (club: Club) => void;
+  joinedClubIds: Set<number>;
 }
 
 const nivelColor: Record<string, string> = {
@@ -21,7 +23,7 @@ const deporteEmoji: Record<string, string> = {
   baloncesto: '🏀', yoga: '🧘', natacion: '🏊', ciclismo: '🚴',
 };
 
-export const ListaClubs = ({ clubs, totalElements, sort, setSort }: ListaClubsProps) => {
+export const ListaClubs = ({ clubs, totalElements, sort, setSort, onUnirse, joinedClubIds }: ListaClubsProps) => {
   if (clubs.length === 0) {
     return (
       <Box sx={{ py: 16, px: 4, textAlign: 'center', bgcolor: 'background.paper', borderRadius: 3 }}>
@@ -76,7 +78,9 @@ export const ListaClubs = ({ clubs, totalElements, sort, setSort }: ListaClubsPr
 
       {/* Grid de tarjetas */}
       <Grid container spacing={3}>
-        {clubs.map(club => (
+        {clubs.map(club => {
+          const isJoined = joinedClubIds.has(club.id);
+          return (
           <Grid item key={club.id} xs={12} sm={6} lg={4}>
             <Card sx={{
               bgcolor: 'background.paper',
@@ -139,14 +143,25 @@ export const ListaClubs = ({ clubs, totalElements, sort, setSort }: ListaClubsPr
                     <Typography sx={{ fontSize: '0.7rem', color: 'rgba(255,255,255,0.4)' }}>por mes</Typography>
                   </Box>
                   <Button size="small" variant="contained"
-                    sx={{ bgcolor: '#2563eb', borderRadius: 2, textTransform: 'none', fontWeight: 600, fontSize: '0.8rem', px: 2, '&:hover': { bgcolor: '#1d4ed8' } }}>
-                    Unirse
+                    onClick={() => onUnirse(club)}
+                    disabled={isJoined}
+                    sx={{
+                      bgcolor: isJoined ? 'rgba(34,197,94,0.35)' : '#2563eb',
+                      borderRadius: 2,
+                      textTransform: 'none',
+                      fontWeight: 600,
+                      fontSize: '0.8rem',
+                      px: 2,
+                      '&:hover': { bgcolor: isJoined ? 'rgba(34,197,94,0.35)' : '#1d4ed8' },
+                      '&.Mui-disabled': { color: 'rgba(255,255,255,0.9)' },
+                    }}>
+                    {isJoined ? 'Ya unido' : 'Unirme'}
                   </Button>
                 </Box>
               </CardContent>
             </Card>
           </Grid>
-        ))}
+        )})}
       </Grid>
     </>
   );

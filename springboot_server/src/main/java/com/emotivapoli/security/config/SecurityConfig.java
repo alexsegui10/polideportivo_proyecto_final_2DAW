@@ -40,6 +40,8 @@ public class SecurityConfig {
                 .sessionManagement(session -> session.sessionCreationPolicy(SessionCreationPolicy.STATELESS))
                 .authorizeHttpRequests(authorize -> authorize
                         // ── Endpoints públicos (sin token) ───────────────────────────
+                        // Stripe webhook: Stripe llama directamente, sin JWT
+                        .requestMatchers(HttpMethod.POST, "/stripe/webhook").permitAll()
                         .requestMatchers(HttpMethod.POST, "/api/auth/register").permitAll()
                         .requestMatchers(HttpMethod.POST, "/api/auth/login").permitAll()
                         // refresh y logout sin access token: solo necesitan la cookie

@@ -23,6 +23,7 @@ public class PagoMapper {
         dto.setCurrency(entity.getCurrency());
         dto.setProvider(entity.getProvider());
         dto.setProviderPaymentId(entity.getProviderPaymentId());
+        dto.setStripePaymentIntentId(entity.getStripePaymentIntentId());
         dto.setStatus(entity.getStatus());
         dto.setIsActive(entity.getIsActive());
         dto.setCreatedAt(entity.getCreatedAt());
@@ -45,6 +46,7 @@ public class PagoMapper {
         response.setCurrency(dto.getCurrency());
         response.setProvider(dto.getProvider());
         response.setProviderPaymentId(dto.getProviderPaymentId());
+        response.setStripePaymentIntentId(dto.getStripePaymentIntentId());
         response.setStatus(dto.getStatus());
         response.setIsActive(dto.getIsActive());
         response.setCreatedAt(dto.getCreatedAt());

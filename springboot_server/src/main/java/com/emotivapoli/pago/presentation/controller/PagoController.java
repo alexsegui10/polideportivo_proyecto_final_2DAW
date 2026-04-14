@@ -3,7 +3,9 @@ package com.emotivapoli.pago.presentation.controller;
 import com.emotivapoli.pago.application.mapper.PagoMapper;
 import com.emotivapoli.pago.application.service.PagoService;
 import com.emotivapoli.pago.domain.dto.PagoDTO;
+import com.emotivapoli.pago.presentation.schemas.request.CreatePaymentIntentRequest;
 import com.emotivapoli.pago.presentation.schemas.response.PagoResponse;
+import com.emotivapoli.pago.presentation.schemas.response.PaymentIntentResponse;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 
@@ -44,5 +46,10 @@ public class PagoController {
         return pagoService.getMisPagos().stream()
                 .map(pagoMapper::toResponse)
                 .collect(Collectors.toList());
+    }
+
+    // Crear PaymentIntent (reserva pista con Stripe)
+    public PaymentIntentResponse createPaymentIntent(CreatePaymentIntentRequest request) {
+        return pagoService.createPaymentIntent(request);
     }
 }

@@ -1,0 +1,7 @@
+{
+  "permissions": {
+    "allow": [
+      "Bash(find /c/Users/Alex/Desktop/2DAW/polideportivo/Emotiva_poli/springboot_server/src/main/java -name *Application* -o -name *Main*)"
+    ]
+  }
+}

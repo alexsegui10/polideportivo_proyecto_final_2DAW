@@ -448,6 +448,21 @@ export interface ClubSuscripcion {
   createdAt: string;
   updatedAt: string;
 }
+// Stripe PaymentIntent
+export interface CreatePaymentIntentRequest {
+  pistaId: number;
+  usuarioId: number;
+  fechaHoraInicio: string; // ISO-8601: "2024-03-15T10:00:00"
+  fechaHoraFin: string;
+  precio: number;
+}
+
+export interface PaymentIntentResponse {
+  clientSecret: string;
+  reservaId: number;
+  pagoId: number;
+}
+
 export interface ReservaUpdateRequest {
   pistaId?: number;
   clubId?: number;

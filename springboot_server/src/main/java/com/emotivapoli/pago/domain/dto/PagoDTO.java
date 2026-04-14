@@ -15,6 +15,7 @@ public class PagoDTO {
     private String currency;
     private String provider;
     private String providerPaymentId;
+    private String stripePaymentIntentId;
     private String status;
     private Boolean isActive;
     private LocalDateTime createdAt;
@@ -50,6 +51,9 @@ public class PagoDTO {
 
     public String getProviderPaymentId() { return providerPaymentId; }
     public void setProviderPaymentId(String providerPaymentId) { this.providerPaymentId = providerPaymentId; }
+
+    public String getStripePaymentIntentId() { return stripePaymentIntentId; }
+    public void setStripePaymentIntentId(String stripePaymentIntentId) { this.stripePaymentIntentId = stripePaymentIntentId; }
 
     public String getStatus() { return status; }
     public void setStatus(String status) { this.status = status; }

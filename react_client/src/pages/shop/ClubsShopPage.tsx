@@ -1,10 +1,14 @@
 import { useEffect, useState } from 'react';
 import { Box, CircularProgress, ThemeProvider, createTheme } from '@mui/material';
 import { useUrlState, useDebouncedValue, useClubsShopQueries } from '../../hooks';
+import { useAuth } from '../../hooks';
 import { Club } from '../../types';
 import { FiltrosClubs } from '../../components/Shop/FiltrosClubs';
 import { ListaClubs } from '../../components/Shop/ListaClubs';
 import { PaginacionPistas } from '../../components/Shop/PaginacionPistas';
+import { unirseClub } from '../../services/mutations/clubsMutations';
+import { getClubsByUsuarioId } from '../../services/queries/clubMiembroQueries';
+import Swal from 'sweetalert2';
 
 const darkTheme = createTheme({
   palette: {
@@ -52,6 +56,65 @@ const ClubsShopPage = () => {
   // --- paginación ---
   const setPage = (p: number) => url.set('page', p);
   const setLimit = (s: number) => url.setMany({ limit: s, page: 1 });
+
+  const { user, isAuth } = useAuth();
+  const [joinedClubIds, setJoinedClubIds] = useState<Set<number>>(new Set());
+
+  useEffect(() => {
+    if (!isAuth || !user) {
+      setJoinedClubIds(new Set());
+      return;
+    }
+
+    getClubsByUsuarioId(user.id)
+      .then((miembros) => {
+        const ids = new Set(miembros.map((miembro) => miembro.clubId));
+        setJoinedClubIds(ids);
+      })
+      .catch(() => {
+        setJoinedClubIds(new Set());
+      });
+  }, [isAuth, user]);
+
+  const handleUnirse = async (club: Club) => {
+    if (!isAuth || !user) {
+      window.location.href = '/auth/login';
+      return;
+    }
+
+    if (joinedClubIds.has(club.id)) {
+      await Swal.fire({
+        title: 'Ya eres miembro',
+        text: `Ya estás unido a ${club.nombre}.`,
+        icon: 'info',
+        confirmButtonColor: '#2563eb',
+        background: '#111722',
+        color: '#ffffff',
+      });
+      return;
+    }
+
+    const result = await Swal.fire({
+      title: '¿Unirte al club?',
+      text: `${club.nombre} · €${Number(club.precioMensual).toFixed(2)}/mes`,
+      icon: 'question',
+      showCancelButton: true,
+      confirmButtonText: 'Unirme',
+      cancelButtonText: 'Cancelar',
+      confirmButtonColor: '#2563eb',
+      background: '#111722',
+      color: '#ffffff',
+    });
+    if (!result.isConfirmed) return;
+    try {
+      await unirseClub(club.id, user.id);
+      setJoinedClubIds((prev) => new Set(prev).add(club.id));
+      Swal.fire({ title: '¡Bienvenido!', text: `Te has unido a ${club.nombre}.`, icon: 'success', confirmButtonColor: '#2563eb', background: '#111722', color: '#ffffff' });
+    } catch (err: unknown) {
+      const msg = err instanceof Error ? err.message : 'Error al unirse al club';
+      Swal.fire({ title: 'Error', text: msg, icon: 'error', confirmButtonColor: '#2563eb', background: '#111722', color: '#ffffff' });
+    }
+  };
 
   // --- estado de resultados ---
   const [state, setState] = useState<{
@@ -148,6 +211,8 @@ const ClubsShopPage = () => {
                   totalElements={state.totalElements}
                   sort={sort}
                   setSort={setSort}
+                  onUnirse={handleUnirse}
+                  joinedClubIds={joinedClubIds}
                 />
                 {state.data.length > 0 && (
                   <Box sx={{ mt: 6 }}>

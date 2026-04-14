@@ -15,3 +15,8 @@ export const getSuscripcionesByMiembroUid = async (miembroUid: string): Promise<
   const response = await api.get<ClubSuscripcion[]>(`/club-suscripciones/miembro/${miembroUid}`);
   return response.data;
 };
+
+export const getClubsByUsuarioId = async (usuarioId: number): Promise<ClubMiembro[]> => {
+  const response = await api.get<ClubMiembro[]>(`/club-miembros/usuario/${usuarioId}`);
+  return response.data;
+};

@@ -1,10 +1,13 @@
 import { useEffect, useState } from 'react';
 import { Box, CircularProgress, ThemeProvider, createTheme } from '@mui/material';
 import { useUrlState, useDebouncedValue, useClasesShopQueries } from '../../hooks';
+import { useAuth } from '../../hooks';
 import { ClasePublica } from '../../types';
 import { FiltrosClases } from '../../components/Shop/FiltrosClases';
 import { ListaClases } from '../../components/Shop/ListaClases';
 import { PaginacionPistas } from '../../components/Shop/PaginacionPistas';
+import { inscribirseClase } from '../../services/mutations/clasesMutations';
+import Swal from 'sweetalert2';
 
 const darkTheme = createTheme({
   palette: {
@@ -50,6 +53,34 @@ const ClasesShopPage = () => {
   // --- paginación ---
   const setPage = (p: number) => url.set('page', p);
   const setLimit = (s: number) => url.setMany({ limit: s, page: 1 });
+
+  const { user, isAuth } = useAuth();
+
+  const handleInscribirse = async (clase: ClasePublica) => {
+    if (!isAuth || !user) {
+      window.location.href = '/auth/login';
+      return;
+    }
+    const result = await Swal.fire({
+      title: '¿Inscribirte?',
+      text: `${clase.nombre} · ${new Date(clase.fechaHoraInicio).toLocaleString('es-ES')}`,
+      icon: 'question',
+      showCancelButton: true,
+      confirmButtonText: 'Inscribirme',
+      cancelButtonText: 'Cancelar',
+      confirmButtonColor: '#2563eb',
+      background: '#111722',
+      color: '#ffffff',
+    });
+    if (!result.isConfirmed) return;
+    try {
+      await inscribirseClase(clase.id, user.id);
+      Swal.fire({ title: '¡Inscrito!', text: 'Te has inscrito correctamente.', icon: 'success', confirmButtonColor: '#2563eb', background: '#111722', color: '#ffffff' });
+    } catch (err: unknown) {
+      const msg = err instanceof Error ? err.message : 'Error al inscribirse';
+      Swal.fire({ title: 'Error', text: msg, icon: 'error', confirmButtonColor: '#2563eb', background: '#111722', color: '#ffffff' });
+    }
+  };
 
   // --- estado de resultados ---
   const [state, setState] = useState<{
@@ -144,6 +175,7 @@ const ClasesShopPage = () => {
                   totalElements={state.totalElements}
                   sort={sort}
                   setSort={setSort}
+                  onInscribirse={handleInscribirse}
                 />
                 {state.data.length > 0 && (
                   <Box sx={{ mt: 6 }}>

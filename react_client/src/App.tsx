@@ -99,7 +99,13 @@ function App() {
               {/* Ruta de perfil público (por slug) - Si eres el dueño puedes editar */}
               <Route path="/profile/:slug" element={
                 <Layout>
-                  <ProfilePage />
+                  <ClaseInscripcionProvider>
+                    <ClubMiembroProvider>
+                      <ReservasProvider>
+                        <ProfilePage />
+                      </ReservasProvider>
+                    </ClubMiembroProvider>
+                  </ClaseInscripcionProvider>
                 </Layout>
               } />
 

@@ -23,3 +23,18 @@ export const updateClase = async (slug: string, clase: ClaseUpdateRequest): Prom
 export const deleteClase = async (slug: string): Promise<void> => {
   await api.patch(`/clases/${slug}/soft-delete`);
 };
+
+/**
+ * Inscribir al usuario en una clase pública (gratuita)
+ */
+export const inscribirseClase = async (
+  claseId: number,
+  usuarioId: number
+): Promise<void> => {
+  await api.post('/clase-inscripciones', {
+    claseId,
+    usuarioId,
+    precioPagado: 0,
+    metodoPago: 'gratuito',
+  });
+};

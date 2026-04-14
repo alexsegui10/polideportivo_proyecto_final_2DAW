@@ -9,6 +9,7 @@ interface ListaClasesProps {
   totalElements: number;
   sort: string;
   setSort: (value: string) => void;
+  onInscribirse: (clase: ClasePublica) => void;
 }
 
 const nivelColor: Record<string, string> = {
@@ -27,7 +28,7 @@ const formatFecha = (iso: string) => {
   return d.toLocaleDateString('es-ES', { weekday: 'short', day: 'numeric', month: 'short', hour: '2-digit', minute: '2-digit' });
 };
 
-export const ListaClases = ({ clases, totalElements, sort, setSort }: ListaClasesProps) => {
+export const ListaClases = ({ clases, totalElements, sort, setSort, onInscribirse }: ListaClasesProps) => {
   if (clases.length === 0) {
     return (
       <Box sx={{ py: 16, px: 4, textAlign: 'center', bgcolor: 'background.paper', borderRadius: 3 }}>
@@ -146,6 +147,7 @@ export const ListaClases = ({ clases, totalElements, sort, setSort }: ListaClase
                     }} />
                   </Box>
                   <Button size="small" variant="contained"
+                    onClick={() => onInscribirse(clase)}
                     sx={{ bgcolor: '#2563eb', borderRadius: 2, textTransform: 'none', fontWeight: 600, fontSize: '0.8rem', px: 2, '&:hover': { bgcolor: '#1d4ed8' } }}>
                     Inscribirse
                   </Button>

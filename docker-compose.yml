@@ -84,6 +84,8 @@ services:
       JWT_SECRET: tu-secreto-super-seguro-cambia-esto-en-produccion-debe-tener-al-menos-256-bits-de-longitud
       JWT_ACCESS_SECRET: tu-secreto-super-seguro-cambia-esto-en-produccion-debe-tener-al-menos-256-bits-de-longitud
       JWT_REFRESH_SECRET: tu-refresh-secreto-super-seguro-diferente-al-access-debe-tener-al-menos-256-bits
+      STRIPE_SECRET_KEY: ${STRIPE_SECRET_KEY:-}
+      STRIPE_WEBHOOK_SECRET: ${STRIPE_WEBHOOK_SECRET:-}
     ports:
       - "8080:8080"
     depends_on:
@@ -98,6 +100,10 @@ services:
     build:
       context: ./react_client
       dockerfile: Dockerfile
+      args:
+        VITE_API_URL: ${VITE_API_URL:-http://localhost:8000}
+        VITE_SPRINGBOOT_URL: ${VITE_SPRINGBOOT_URL:-http://localhost:8080}
+        VITE_STRIPE_PUBLIC_KEY: ${VITE_STRIPE_PUBLIC_KEY:-}
     container_name: emotivapoli_react
     environment:
       # URLs internas Docker (usadas por el proxy de Vite en vite.config.ts)
@@ -106,6 +112,7 @@ services:
       # URLs públicas (usadas por el código del navegador, si hiciera falta)
       - VITE_API_URL=http://localhost:8000
       - VITE_SPRINGBOOT_URL=http://localhost:8080
+      - VITE_STRIPE_PUBLIC_KEY=${VITE_STRIPE_PUBLIC_KEY:-}
     ports:
       - "3002:3002"
     depends_on:

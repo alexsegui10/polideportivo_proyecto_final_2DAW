@@ -9,9 +9,10 @@ interface ListaPistasProps {
   totalElements: number;
   sort: string;
   setSort: (value: string) => void;
+  onReservar: (pista: Pista) => void;
 }
 
-export const ListaPistas = ({ pistas, totalElements, sort, setSort }: ListaPistasProps) => {
+export const ListaPistas = ({ pistas, totalElements, sort, setSort, onReservar }: ListaPistasProps) => {
   const getDeporteEmoji = (tipo: string) => {
     const map: Record<string, string> = {
       'padel': '🎾',
@@ -255,6 +256,7 @@ export const ListaPistas = ({ pistas, totalElements, sort, setSort }: ListaPista
                     </Box>
                     <Button
                       variant="contained"
+                      onClick={() => onReservar(pista)}
                       sx={{
                         bgcolor: '#2563eb',
                         color: 'white',

@@ -11,6 +11,14 @@ RUN npm install
 # Copy source code
 COPY . .
 
+# Variables de entorno de Vite (se inyectan en build)
+ARG VITE_API_URL
+ARG VITE_SPRINGBOOT_URL
+ARG VITE_STRIPE_PUBLIC_KEY
+ENV VITE_API_URL=$VITE_API_URL
+ENV VITE_SPRINGBOOT_URL=$VITE_SPRINGBOOT_URL
+ENV VITE_STRIPE_PUBLIC_KEY=$VITE_STRIPE_PUBLIC_KEY
+
 # Build the app
 RUN npm run build
 

@@ -49,6 +49,9 @@ public class Pago {
     @Column(name = "provider_payment_id", length = 255)
     private String providerPaymentId;
 
+    @Column(name = "stripe_payment_intent_id", length = 255, unique = true)
+    private String stripePaymentIntentId;
+
     @Column(nullable = false, length = 50)
     private String status = "pendiente"; // pendiente, completado, fallido, reembolsado
 
@@ -140,6 +143,14 @@ public class Pago {
 
     public void setProviderPaymentId(String providerPaymentId) {
         this.providerPaymentId = providerPaymentId;
+    }
+
+    public String getStripePaymentIntentId() {
+        return stripePaymentIntentId;
+    }
+
+    public void setStripePaymentIntentId(String stripePaymentIntentId) {
+        this.stripePaymentIntentId = stripePaymentIntentId;
     }
 
     public String getStatus() {

@@ -23,3 +23,13 @@ export const updateClub = async (slug: string, club: ClubUpdateRequest): Promise
 export const deleteClub = async (slug: string): Promise<void> => {
   await api.patch(`/clubs/${slug}/soft-delete`);
 };
+
+/**
+ * Unirse a un club como miembro
+ */
+export const unirseClub = async (
+  clubId: number,
+  usuarioId: number
+): Promise<void> => {
+  await api.post('/club-miembros', { clubId, usuarioId });
+};
