@@ -29,6 +29,8 @@ const ShopPage = lazy(() => import('./pages/shop/ShopPage'))
 const ClasesShopPage = lazy(() => import('./pages/shop/ClasesShopPage'))
 const ClubsShopPage = lazy(() => import('./pages/shop/ClubsShopPage'))
 const ProfilePage = lazy(() => import('./pages/profile/ProfilePage'))
+const IncidenciasPage = lazy(() => import('./pages/profile/IncidenciasPage'))
+const AdminIncidenciasPage = lazy(() => import('./pages/admin/IncidenciasPage'))
 
 const LoadingFallback = () => (
   <Box
@@ -109,6 +111,12 @@ function App() {
                 </Layout>
               } />
 
+              <Route path="/incidencias" element={
+                <Layout>
+                  <IncidenciasPage />
+                </Layout>
+              } />
+
               {/* Rutas de dashboard protegidas con AdminGuard */}
               <Route element={<AdminGuard />}>
                 <Route path="/dashboard" element={
@@ -166,6 +174,12 @@ function App() {
                     <PagosProvider>
                       <PagosPage />
                     </PagosProvider>
+                  </DashboardLayout>
+                } />
+
+                <Route path="/dashboard/incidencias" element={
+                  <DashboardLayout>
+                    <AdminIncidenciasPage />
                   </DashboardLayout>
                 } />
               </Route>

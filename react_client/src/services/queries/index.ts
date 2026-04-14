@@ -6,3 +6,4 @@ export * from './reservasQueries';
 export * from './pagosQueries';
 export * from './claseInscripcionQueries';
 export * from './clubMiembroQueries';
+export * from './incidenciasQueries';

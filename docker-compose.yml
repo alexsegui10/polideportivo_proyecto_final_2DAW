@@ -92,7 +92,9 @@ services:
       postgres:
         condition: service_healthy
     networks:
-      - emotivapoli_network
+      emotivapoli_network:
+        aliases:
+          - springboot-server
     restart: unless-stopped
 
   # React Client (Frontend)
@@ -103,6 +105,7 @@ services:
       args:
         VITE_API_URL: ${VITE_API_URL:-http://localhost:8000}
         VITE_SPRINGBOOT_URL: ${VITE_SPRINGBOOT_URL:-http://localhost:8080}
+        VITE_IA_GATEWAY_URL: ${VITE_IA_GATEWAY_URL:-http://localhost:3001}
         VITE_STRIPE_PUBLIC_KEY: ${VITE_STRIPE_PUBLIC_KEY:-}
     container_name: emotivapoli_react
     environment:
@@ -112,6 +115,7 @@ services:
       # URLs públicas (usadas por el código del navegador, si hiciera falta)
       - VITE_API_URL=http://localhost:8000
       - VITE_SPRINGBOOT_URL=http://localhost:8080
+      - VITE_IA_GATEWAY_URL=${VITE_IA_GATEWAY_URL:-http://localhost:3001}
       - VITE_STRIPE_PUBLIC_KEY=${VITE_STRIPE_PUBLIC_KEY:-}
     ports:
       - "3002:3002"
@@ -119,6 +123,30 @@ services:
       springboot_server:
         condition: service_started
       fastapi_server:
+        condition: service_started
+    networks:
+      - emotivapoli_network
+    restart: unless-stopped
+
+  # IA Gateway Next (Search IA de pistas)
+  ia_gateway_next:
+    build:
+      context: ./ia_gateway_next
+      dockerfile: Dockerfile
+    container_name: emotivapoli_ia_gateway
+    environment:
+      - PORT=3001
+      - SPRING_API_URL=http://springboot-server:8080/api
+      - GROQ_API_KEY=${GROQ_API_KEY:-}
+      - GEMINI_API_KEY=${GEMINI_API_KEY:-}
+      - OPENROUTER_API_KEY=${OPENROUTER_API_KEY:-}
+      - CEREBRAS_API_KEY=${CEREBRAS_API_KEY:-}
+      - MISTRAL_API_KEY=${MISTRAL_API_KEY:-}
+      - COHERE_API_KEY=${COHERE_API_KEY:-}
+    ports:
+      - "3001:3001"
+    depends_on:
+      springboot_server:
         condition: service_started
     networks:
       - emotivapoli_network

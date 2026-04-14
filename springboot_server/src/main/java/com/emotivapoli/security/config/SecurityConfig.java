@@ -58,9 +58,13 @@ public class SecurityConfig {
                         .requestMatchers(HttpMethod.GET,   "/api/usuarios/role/**").hasRole("ADMIN")
                         .requestMatchers(HttpMethod.POST,  "/api/usuarios").hasRole("ADMIN")
                         .requestMatchers(HttpMethod.PATCH, "/api/usuarios/*/soft-delete").hasRole("ADMIN")
+                        .requestMatchers(HttpMethod.GET,   "/api/incidencias").hasRole("ADMIN")
+                        .requestMatchers(HttpMethod.PATCH, "/api/incidencias/*/estado").hasRole("ADMIN")
 
                         // ── Cualquier usuario autenticado ────────────────────────────
                         .requestMatchers(HttpMethod.GET,   "/api/usuario").authenticated()
+                        .requestMatchers(HttpMethod.POST,  "/api/incidencias").authenticated()
+                        .requestMatchers(HttpMethod.GET,   "/api/incidencias/mine").authenticated()
                         .requestMatchers(HttpMethod.PUT,   "/api/usuarios/**").authenticated()
                         .requestMatchers(HttpMethod.PATCH, "/api/usuarios/*/change-password").authenticated()
                         .anyRequest().authenticated()

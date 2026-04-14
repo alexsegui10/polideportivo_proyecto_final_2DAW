@@ -13,6 +13,23 @@ interface ListaPistasProps {
 }
 
 export const ListaPistas = ({ pistas, totalElements, sort, setSort, onReservar }: ListaPistasProps) => {
+  const getFallbackImageByTipo = (tipo?: string) => {
+    const t = (tipo || '').toLowerCase();
+    if (t.includes('padel') || t.includes('padel')) {
+      return 'https://images.unsplash.com/photo-1554068865-24cecd4e34b8?w=800&h=600&fit=crop';
+    }
+    if (t.includes('tenis') || t.includes('tennis')) {
+      return 'https://images.unsplash.com/photo-1622279457486-28f0ec8ba5eb?w=800&h=600&fit=crop';
+    }
+    if (t.includes('baloncesto') || t.includes('basket')) {
+      return 'https://images.unsplash.com/photo-1546519638-68e109498ffc?w=800&h=600&fit=crop';
+    }
+    if (t.includes('futbol') || t.includes('fútbol')) {
+      return 'https://images.unsplash.com/photo-1459865264687-595d652de67e?w=800&h=600&fit=crop';
+    }
+    return 'https://images.unsplash.com/photo-1534438327276-14e5300c3a48?w=800&h=600&fit=crop';
+  };
+
   const getDeporteEmoji = (tipo: string) => {
     const map: Record<string, string> = {
       'padel': '🎾',
@@ -141,9 +158,18 @@ export const ListaPistas = ({ pistas, totalElements, sort, setSort, onReservar }
                   />
                   <CardMedia
                     component="img"
-                    image={pista.imagen || `https://source.unsplash.com/random/600x400?${pista.tipo},sport,court`}
+                    image={pista.imagen || getFallbackImageByTipo(pista.tipo)}
                     alt={pista.nombre}
                     className="card-image"
+                    onError={(e) => {
+                      const img = e.currentTarget as HTMLImageElement;
+                      const fallback = getFallbackImageByTipo(pista.tipo);
+                      if (img.src !== fallback) {
+                        img.src = fallback;
+                        return;
+                      }
+                      img.src = 'https://via.placeholder.com/800x600?text=Sin+imagen';
+                    }}
                     sx={{ 
                       height: '100%',
                       objectFit: 'cover',

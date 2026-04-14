@@ -27,6 +27,19 @@ Set-Location -Path ".."
 Write-Host "✅ Dependencias del frontend instaladas" -ForegroundColor Green
 Write-Host ""
 
+# 2.1. Instalar dependencias del gateway IA Next
+Write-Host "📦 Instalando dependencias del gateway IA (Next)..." -ForegroundColor Yellow
+Set-Location -Path "ia_gateway_next"
+npm install
+if ($LASTEXITCODE -ne 0) {
+    Write-Host "❌ Error al instalar dependencias del gateway IA" -ForegroundColor Red
+    Set-Location -Path ".."
+    exit 1
+}
+Set-Location -Path ".."
+Write-Host "✅ Dependencias del gateway IA instaladas" -ForegroundColor Green
+Write-Host ""
+
 # 3. Limpiar imágenes antiguas (opcional, comentar si no se necesita)
 # Write-Host "🧹 Limpiando imágenes antiguas..." -ForegroundColor Yellow
 # docker-compose rm -f
@@ -68,9 +81,13 @@ Write-Host ""
 Write-Host "📌 URLs disponibles:" -ForegroundColor Cyan
 Write-Host "   Frontend: http://localhost:5173" -ForegroundColor White
 Write-Host "   Backend:  http://localhost:8080" -ForegroundColor White
+Write-Host "   IA Next:  http://localhost:3001" -ForegroundColor White
 Write-Host "   Swagger:  http://localhost:8080/swagger-ui.html" -ForegroundColor White
 Write-Host "   PgAdmin:  http://localhost:5050" -ForegroundColor White
 Write-Host ""
 Write-Host "💡 Para ver logs en tiempo real:" -ForegroundColor Yellow
 Write-Host "   docker-compose logs -f springboot_server" -ForegroundColor White
 Write-Host "   docker-compose logs -f react_client" -ForegroundColor White
+Write-Host "   docker-compose logs -f ia_gateway_next" -ForegroundColor White
+Write-Host "" 
+Write-Host "🔑 IA Gateway: configura 1 key gratis (GROQ_API_KEY o GEMINI_API_KEY) en .env y relanza actualizar." -ForegroundColor Yellow

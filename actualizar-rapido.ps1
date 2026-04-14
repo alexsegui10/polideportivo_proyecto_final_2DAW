@@ -14,6 +14,12 @@ Set-Location -Path "react_client"
 npm install
 Set-Location -Path ".."
 
+# 2.1. NPM install gateway IA Next
+Write-Host "📦 Verificando dependencias del gateway IA (Next)..." -ForegroundColor Yellow
+Set-Location -Path "ia_gateway_next"
+npm install
+Set-Location -Path ".."
+
 # 3. Build (con cache para ser más rápido)
 Write-Host "🔨 Construyendo imágenes (con cache)..." -ForegroundColor Yellow
 docker-compose build
@@ -25,3 +31,5 @@ docker-compose up -d
 Write-Host ""
 Write-Host "✅ Actualización rápida completada!" -ForegroundColor Green
 Write-Host "📋 Ver logs: docker-compose logs -f springboot_server" -ForegroundColor Cyan
+Write-Host "📋 Ver logs IA: docker-compose logs -f ia_gateway_next" -ForegroundColor Cyan
+Write-Host "🔑 Recuerda poner una key gratis en .env (GROQ_API_KEY o GEMINI_API_KEY) para activar recommend." -ForegroundColor Yellow

@@ -371,6 +371,34 @@ export interface ReservaCreateRequest {
   notas?: string;
   tipoReserva?: string;
 }
+
+// Types para Incidencias
+export interface Incidencia {
+  id: number;
+  usuarioId: number;
+  usuarioNombre?: string;
+  titulo: string;
+  descripcion: string;
+  tipo: 'general' | 'reserva' | 'pista' | 'pago' | 'web';
+  prioridad: 'baja' | 'media' | 'alta';
+  estado: 'abierta' | 'en_proceso' | 'resuelta' | 'cerrada';
+  pagina?: string;
+  createdAt: string;
+  updatedAt: string;
+}
+
+export interface IncidenciaCreateRequest {
+  titulo: string;
+  descripcion: string;
+  tipo?: 'general' | 'reserva' | 'pista' | 'pago' | 'web';
+  prioridad?: 'baja' | 'media' | 'alta';
+  pagina?: string;
+}
+
+export interface IncidenciaEstadoUpdateRequest {
+  estado: 'abierta' | 'en_proceso' | 'resuelta' | 'cerrada';
+}
+
 // Types para Inscripciones de Clases
 export interface ClaseInscripcion {
   id: number;

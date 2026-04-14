@@ -6,6 +6,7 @@ import {
   Group as GroupIcon,
   Groups as ClubsIcon,
   Payment as PagosIcon,
+  ReportProblem as IncidenciasIcon,
   Settings as SettingsIcon 
 } from '@mui/icons-material';
 import { useNavigate, useLocation } from 'react-router-dom';
@@ -21,6 +22,7 @@ export const Sidebar = () => {
     { text: 'Reservas', icon: <CalendarIcon />, path: '/dashboard/reservas' },
     { text: 'Clubs', icon: <ClubsIcon />, path: '/dashboard/clubs' },
     { text: 'Pagos', icon: <PagosIcon />, path: '/dashboard/pagos' },
+    { text: 'Incidencias', icon: <IncidenciasIcon />, path: '/dashboard/incidencias' },
     { text: 'Ajustes', icon: <SettingsIcon />, path: '/ajustes' },
   ];
 

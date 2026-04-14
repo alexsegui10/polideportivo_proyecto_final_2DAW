@@ -188,6 +188,9 @@ export const Header = () => {
                   <MenuItem onClick={handleCloseUserMenu} component={RouterLink} to="/mis-clubs">
                     <Typography textAlign="center">Mis Clubs</Typography>
                   </MenuItem>
+                  <MenuItem onClick={handleCloseUserMenu} component={RouterLink} to="/incidencias">
+                    <Typography textAlign="center">Incidencias</Typography>
+                  </MenuItem>
                   
                   <MenuItem onClick={handleLogout} sx={{ color: 'error.main', fontWeight: 600 }}>
                     <Typography textAlign="center">Cerrar Sesión</Typography>
